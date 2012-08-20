@@ -1,6 +1,8 @@
 #ifndef DIAMETER_H
 #define DIAMETER_H
 
+#include <yaml-cpp/emitter.h>
+
 namespace graph
 {
 
@@ -58,84 +60,15 @@ protected:
     }
   }
 
-#if 0 // too inefficient for, even, 1394-fin nodeadlock.
-  std::vector<std::vector<size_t> > m_weights;
-  //m_weights(m_graph.size(), std::vector<size_t>(m_graph.size(), std::numeric_limits<size_t>::max())),
-  void initialise_weights()
-  {
-    mCRL2log(debug, "Floyd-Warsnall") << "Initialising weight matrix" << std::endl;
-    m_weights = std::vector<std::map<size_t, size_t> >(m_graph.size());
-
-    for(size_t i = 0; i < m_graph.size(); ++i)
-    {
-      mCRL2log(debug, "Floyd-Warsnall") << "  source " << i << std::endl;
-      m_weights[i][i] = 0;
-      typename graph_t::vertex_t v = m_graph.vertex(i);
-      for(std::set<VertexIndex>::const_iterator j = v.out.begin(); j != v.out.end(); ++j)
-      {
-        m_weights[i][*j] = 1;
-      }
-    }
-  }
-
-  // all pairs shortest path using Floyd-Warshall
-  void floyd_warshall()
-  {
-    std::vector<std::vector<size_t> > m_next(m_weights);
-
-    mCRL2log(debug, "Floyd-Warshall") << "Running Floyd-Warshall on graph of size " << m_graph.size() << std::endl;
-    for(size_t k = 0; k < m_graph.size(); ++k)
-    {
-      mCRL2log(debug, "Floyd-Warshall") << "  step " << k << std::endl;
-      for (size_t i = 0; i < m_graph.size(); ++i)
-      {
-        for (size_t j = 0; j < m_graph.size(); ++j)
-        {
-          m_next[i][j] = (std::min)(m_weights[i][j], m_weights[i][k] + m_weights[k][j]);
-        }
-      }
-      m_weights.swap(m_next);
-    }
-  }
-
-  void diameter_fw()
-  {
-    mCRL2log(debug) << "Using Floyd-Warshall for ASSP computation" << std::endl;
-    initialise_weights();
-    floyd_warshall();
-
-    mCRL2log(debug) << "Done computing all-source shortest paths using Floyd-Warshall" << std::endl
-              << "determining diameter" << std::endl;
-
-    m_diameter = 0;
-    for(size_t i = 0; i < m_graph.size(); ++i)
-    {
-      for(size_t j = 0; j < m_graph.size(); ++j)
-      {
-        if(m_weights[i][j] != std::numeric_limits<size_t>::max())
-        {
-          m_diameter = (std::max)(m_diameter, m_weights[i][j]);
-        }
-      }
-    }
-  }
-#endif
-
   // Run single source shortest path from every vertex, and update diameter
   // accordingly.
-  void diameter_dijkstra()
+  void compute_diameter()
   {
-    mCRL2log(debug) << "Using Dijkstra's SSSP algorithm from all sources" << std::endl;
+    mCRL2log(debug) << "Computing diameter using Dijkstra's SSSP algorithm from all sources" << std::endl;
     for(VertexIndex i = 0; i < m_graph.size(); ++i)
     {
       dijkstra(i);
     }
-  }
-
-  void diameter()
-  {
-    mCRL2log(verbose) << "Computing diameter" << std::endl;
-    diameter_dijkstra();
   }
 
 public:
@@ -143,12 +76,17 @@ public:
     : m_graph(g),
       m_diameter(0)
   {
-    diameter();
+    compute_diameter();
+  }
+
+  size_t diameter() const
+  {
+    return m_diameter;
   }
 
   void yaml(YAML::Emitter& out) const
   {
-    out << m_diameter;
+    out << diameter();
   }
 };
 

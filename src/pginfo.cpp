@@ -24,40 +24,6 @@ private:
 protected:
   bool m_expensive;
 
-  template<typename graph_t>
-  void
-  load(graph_t& graph, std::istream& s)
-  {
-    mCRL2log(mcrl2::log::verbose)
-      << "Loading parity game." << std::endl;
-    timer().start("load");
-    graph::Parser<typename graph_t::vertex_t, graph::pgsolver> parser(
-        graph);
-    parser.load(s);
-    timer().finish("load");
-    mCRL2log(mcrl2::log::verbose)
-      << "Parity game contains " << graph.size() << " nodes and "
-          << graph.num_edges() << " edges." << std::endl;
-  }
-
-  std::istream&
-  open_input()
-  {
-    std::istream* instream = &std::cin;
-    if (not m_input_filename.empty())
-    {
-      m_ifstream.reset(new std::ifstream());
-      m_ifstream->open(m_input_filename.c_str(), std::ios::in);
-      instream = m_ifstream.get();
-    }
-    else
-      m_input_filename = "standard input";
-    mCRL2log(mcrl2::log::verbose)
-      << "Reading from " << m_input_filename << "." << std::endl;
-    return *instream;
-  }
-
-
 public:
   pginfo()
     : mcrl2::utilities::tools::input_tool("pginfo",
@@ -83,13 +49,13 @@ public:
 
   bool run()
   {
-    std::istream& instream = open_input();
+    std::istream& instream = graph::open_input(m_input_filename, m_ifstream);
     mCRL2log(mcrl2::log::verbose)
       << "Computing statistics of parity game." << std::endl;
 
     typedef graph::KripkeStructure<graph::Vertex<graph::pg::Label> > graph_t;
     graph_t pg;
-    load(pg, instream);
+    graph::load(pg, instream, timer());
 
     using namespace graph;
     using namespace graph::pg;

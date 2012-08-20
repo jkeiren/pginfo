@@ -41,15 +41,7 @@ protected:
     throw done_exception();
   }
 
-public:
-  girth_info(const graph_t& g)
-    : super(g),
-      m_girth(std::numeric_limits<size_t>::max())
-  {
-    girth();
-  }
-
-  void girth()
+  void compute_girth()
   {
     for(VertexIndex i = 0; i < m_graph.size(); ++i)
     {
@@ -67,9 +59,22 @@ public:
     }
   }
 
+public:
+  girth_info(const graph_t& g)
+    : super(g),
+      m_girth(std::numeric_limits<size_t>::max())
+  {
+    compute_girth();
+  }
+
+  size_t girth() const
+  {
+    return m_girth;
+  }
+
   void yaml(YAML::Emitter& out) const
   {
-    out << m_girth;
+    out << girth();
   }
 };
 

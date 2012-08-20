@@ -109,11 +109,16 @@ public:
     super::dfs();
   }
 
+  size_t maximum_stack_size() const
+  {
+    return m_max_stack_size;
+  }
+
   void yaml(YAML::Emitter& out) const
   {
     out << YAML::BeginMap
         << YAML::Key << "Maximum stack size"
-        << YAML::Value << m_max_stack_size;
+        << YAML::Value << maximum_stack_size();
     if(m_details)
     {
       out << YAML::Key << "Stack size per visited node"

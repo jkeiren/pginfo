@@ -1,6 +1,9 @@
 #ifndef BFS_INFO_H
 #define BFS_INFO_H
 
+#include <deque>
+#include <yaml-cpp/emitter.h>
+#include <yaml-cpp/stlemitter.h>
 
 #include "mcrl2/utilities/logger.h"
 #include "utilities.h"
@@ -198,6 +201,26 @@ public:
       m_max_queue_size(0)
   {
     super::bfs();
+  }
+
+  size_t get_levels() const
+  {
+    return m_levels;
+  }
+
+  size_t nodes_on_level(size_t i) const
+  {
+    return m_nodes_per_level[i];
+  }
+
+  size_t back_level_edges() const
+  {
+    return m_back_level_edges;
+  }
+
+  size_t back_level_edges_of_length(size_t i) const
+  {
+    return m_back_level_edges_per_length[i];
   }
 
   void yaml(YAML::Emitter& out) const

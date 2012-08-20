@@ -6,6 +6,7 @@
 #include <vector>
 #include <map>
 #include <algorithm>
+#include <yaml-cpp/emitter.h>
 
 #include "pg.h"
 #include "utilities.h"
@@ -87,12 +88,6 @@ protected:
     return m_depth[i];
   }
 
-public:
-  alternation_depth(const graph_t& g):m_graph(g)
-  {
-    compute_alternation_depth();
-  }
-
   void compute_alternation_depth()
   {
     for(VertexIndex i = 0; i < m_graph.size(); ++i)
@@ -101,12 +96,24 @@ public:
     }
   }
 
-  void yaml(YAML::Emitter& out) const
+
+public:
+  alternation_depth(const graph_t& g):m_graph(g)
+  {
+    compute_alternation_depth();
+  }
+
+  std::size_t get_alternation_depth() const
   {
     std::map<VertexIndex, size_t>::const_iterator m = std::max_element(m_alternation_depth.begin(), m_alternation_depth.end(), cmp_second<std::map<VertexIndex, size_t> >() );
+    return m->second;
+  }
+
+  void yaml(YAML::Emitter& out) const
+  {
     out << YAML::BeginMap
         << YAML::Key << "Max"
-        << YAML::Value << m->second
+        << YAML::Value << get_alternation_depth()
         << YAML::Key << "Per node"
         << YAML::Value << m_alternation_depth
         << YAML::EndMap;

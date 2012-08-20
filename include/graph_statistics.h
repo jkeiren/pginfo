@@ -13,7 +13,11 @@
 #include <algorithm>
 #include <limits>
 
+#include <yaml-cpp/emitter.h>
+#include <yaml-cpp/stlemitter.h>
+
 #include "mcrl2/utilities/logger.h"
+#include "utilities.h"
 
 namespace graph
 {
@@ -33,8 +37,6 @@ public:
   graph_info(const graph_t& g)
     : m_graph(g)
   {}
-
-protected:
 
   size_t num_vertices() const
   {
@@ -78,6 +80,7 @@ protected:
     return result;
   }
 
+protected:
   void yaml_values(YAML::Emitter& out) const
   {
     out << YAML::Key << "Number of vertices"
@@ -129,23 +132,6 @@ protected:
     }
   }
 
-  void yaml_values(YAML::Emitter &out) const
-  {
-    size_t even_count(m_nodes_per_player.find(even)->second);
-    size_t odd_count(m_nodes_per_player.find(odd)->second);
-    super::yaml_values(out);
-    out << YAML::Key << "Vertex count per player"
-        << YAML::Value
-        << YAML::BeginMap
-        << YAML::Key << "Even"
-        << YAML::Value << even_count//m_nodes_per_player[even]
-        << YAML::Key << "Odd"
-        << YAML::Value << odd_count//m_nodes_per_player[odd]
-        << YAML::EndMap
-        << YAML::Key << "Vertex count per priority"
-        << YAML::Value << m_nodes_per_priority;
-  }
-
 public:
   pg_info(const graph_t& g)
     : super(g)
@@ -153,12 +139,40 @@ public:
     populate_vertex_statistics();
   }
 
+  size_t num_even_vertices() const
+  {
+    return m_nodes_per_player.find(even)->second;
+  }
+
+  size_t num_odd_vertices() const
+  {
+    return m_nodes_per_player.find(odd)->second;
+  }
+
+protected:
+  void yaml_values(YAML::Emitter &out) const
+  {
+    super::yaml_values(out);
+    out << YAML::Key << "Vertex count per player"
+        << YAML::Value
+        << YAML::BeginMap
+        << YAML::Key << "Even"
+        << YAML::Value << num_even_vertices()
+        << YAML::Key << "Odd"
+        << YAML::Value << num_odd_vertices()
+        << YAML::EndMap
+        << YAML::Key << "Vertex count per priority"
+        << YAML::Value << m_nodes_per_priority;
+  }
+
+public:
   void yaml(YAML::Emitter& out) const
   {
     out << YAML::BeginMap;
     yaml_values(out);
     out << YAML::EndMap;
   }
+
 
 };
 

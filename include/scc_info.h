@@ -41,6 +41,43 @@ protected:
     return result;
   }
 
+  size_t quotient_height_impl(const typename graph_t::vertex_t& v) const
+  {
+    if(v.out.empty())
+    {
+      return 0;
+    }
+    else
+    {
+      size_t max_height = 0;
+      for(std::set<VertexIndex>::const_iterator i = v.out.begin(); i != v.out.end(); ++i)
+      {
+        max_height = (std::max)(max_height, quotient_height_impl(m_quotient_graph.vertex(*i)));
+      }
+      return 1 + max_height;
+    }
+  }
+
+public:
+  scc_info(const graph_t& g)
+    : m_graph(g),
+      m_sccs(m_graph.size())
+  {
+    compute_sccs();
+  }
+
+  size_t sccs() const
+  {
+    return m_quotient_graph.size();
+  }
+
+  // Compute quotient height
+  size_t quotient_height() const
+  {
+    mCRL2log(debug) << "Determining quotient height" << std::endl;
+    quotient_height_impl(m_quotient_graph.vertex(0));
+  }
+
   // Count trivial sccs (size 1)
   size_t trivial_sccs() const
   {
@@ -73,43 +110,11 @@ protected:
     return result;
   }
 
-  size_t quotient_height_impl(const typename graph_t::vertex_t& v) const
-  {
-    if(v.out.empty())
-    {
-      return 0;
-    }
-    else
-    {
-      size_t max_height = 0;
-      for(std::set<VertexIndex>::const_iterator i = v.out.begin(); i != v.out.end(); ++i)
-      {
-        max_height = (std::max)(max_height, quotient_height_impl(m_quotient_graph.vertex(*i)));
-      }
-      return 1 + max_height;
-    }
-  }
-
-  // Compute quotient height
-  size_t quotient_height() const
-  {
-    mCRL2log(debug) << "Determining quotient height" << std::endl;
-    quotient_height_impl(m_quotient_graph.vertex(0));
-  }
-
-public:
-  scc_info(const graph_t& g)
-    : m_graph(g),
-      m_sccs(m_graph.size())
-  {
-    compute_sccs();
-  }
-
   void yaml(YAML::Emitter& out) const
   {
     out << YAML::BeginMap
         << YAML::Key << "Number of SCCs"
-        << YAML::Value << m_quotient_graph.size()
+        << YAML::Value << sccs()
         << YAML::Key << "Number of terminal SCCs"
         << YAML::Value << terminal_sccs()
         << YAML::Key << "Number of trivial SCCs"

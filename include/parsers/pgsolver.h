@@ -159,4 +159,37 @@ namespace graph
       }
   };
 
+  template<typename graph_t>
+  void
+  load(graph_t& graph, std::istream& s, mcrl2::utilities::execution_timer& timer)
+  {
+    mCRL2log(mcrl2::log::verbose)
+      << "Loading parity game." << std::endl;
+    timer.start("load");
+    graph::Parser<typename graph_t::vertex_t, graph::pgsolver> parser(
+        graph);
+    parser.load(s);
+    timer.finish("load");
+    mCRL2log(mcrl2::log::verbose)
+      << "Parity game contains " << graph.size() << " nodes and "
+          << graph.num_edges() << " edges." << std::endl;
+  }
+
+  std::istream&
+  open_input(std::string& input_filename, std::auto_ptr<std::ifstream> ifs)
+  {
+    std::istream* instream = &std::cin;
+    if (!input_filename.empty())
+    {
+      ifs.reset(new std::ifstream());
+      ifs->open(input_filename.c_str(), std::ios::in);
+      instream = ifs.get();
+    }
+    else
+      input_filename = "standard input";
+    mCRL2log(mcrl2::log::verbose)
+      << "Reading from " << input_filename << "." << std::endl;
+    return *instream;
+  }
+
 } // namespace graph
