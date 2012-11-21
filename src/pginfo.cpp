@@ -1,7 +1,7 @@
 #include "yaml-cpp/yaml.h"
 
-#include "mcrl2/utilities/input_tool.h"
-#include "mcrl2/utilities/logger.h"
+#include "input_tool.h"
+#include "logger.h"
 #include "pg.h"
 #include "parsers/pgsolver.h"
 
@@ -16,7 +16,7 @@
 #include "alternation_depth.h"
 
 
-class pginfo : public mcrl2::utilities::tools::input_tool
+class pginfo : public tools::input_tool
 {
 private:
   std::auto_ptr<std::ifstream> m_ifstream;
@@ -26,7 +26,7 @@ protected:
 
 public:
   pginfo()
-    : mcrl2::utilities::tools::input_tool("pginfo",
+    : tools::input_tool("pginfo",
                                         "Jeroen J.A. Keiren",
                                         "Provides various sorts of structural information about parity games.",
                                         "Structural properties that are described in the paper XXX"), // TODO
@@ -34,23 +34,23 @@ public:
   {}
 
   void
-  add_options(mcrl2::utilities::interface_description& desc)
+  add_options(interface_description& desc)
   {
-    mcrl2::utilities::tools::input_tool::add_options(desc);
+    tools::input_tool::add_options(desc);
     desc.
     add_option("expensive", "perform expensive checks");
   }
 
-  void parse_options(const mcrl2::utilities::command_line_parser& parser)
+  void parse_options(const command_line_parser& parser)
   {
-    mcrl2::utilities::tools::input_tool::parse_options(parser);
+    tools::input_tool::parse_options(parser);
     m_expensive = parser.options.count("expensive");
   }
 
   bool run()
   {
     std::istream& instream = graph::open_input(m_input_filename, m_ifstream);
-    mCRL2log(mcrl2::log::verbose)
+    log(log::verbose)
       << "Computing statistics of parity game." << std::endl;
 
     typedef graph::KripkeStructure<graph::Vertex<graph::pg::Label> > graph_t;

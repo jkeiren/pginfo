@@ -1,16 +1,23 @@
 # Unit tests
-# For Ubuntu, instructions are loosely based on http://www.thebigblob.com/getting-started-with-google-test-on-ubuntu/
+# For Ubuntu, instructions are loosely based on
+# http://www.thebigblob.com/getting-started-with-google-test-on-ubuntu/
 
 project(unittest)
 
 enable_testing()
-find_package(GoogleTest)
 
-link_directories (${MCRL2_UTILITIES_LIBRARY})
-include_directories (include ${MCRL2_UTILITIES_INCLUDE_DIR} ${YAMLCPP_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${GTEST_INCLUDE_DIR})
+file(GLOB TEST_SOURCES "*.cpp")
 
-add_executable (unittest
-  unittest.cpp
+include_directories(
+  include
+  ${YAMLCPP_INCLUDE_DIR}
+  ${CMAKE_SOURCE_DIR}/external/logging/include
+  ${CMAKE_SOURCE_DIR}/external/commandline/include
+  ${CMAKE_SOURCE_DIR}/googletest/include
 )
 
-target_link_libraries (unittest ${MCRL2_UTILITIES_LIBRARY} ${YAMLCPP_LIBRARY} boost_regex ${GTEST_LIBRARIES} ${GTEST_MAIN_LIBRARIES} pthread)
+add_executable (unittest
+  ${TEST_SOURCES}
+)
+
+target_link_libraries(unittest ${YAMLCPP_LIBRARY} gtest cppcli cpplogging)

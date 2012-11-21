@@ -16,15 +16,15 @@
 #include <yaml-cpp/emitter.h>
 #include <yaml-cpp/stlemitter.h>
 
-#include "mcrl2/utilities/logger.h"
+#include "logger.h"
 #include "utilities.h"
 
 namespace graph
 {
 
-using mcrl2::log::verbose;
-using mcrl2::log::status;
-using mcrl2::log::debug;
+using log::verbose;
+using log::status;
+using log::debug;
 
 template <typename graph_t>
 class graph_info

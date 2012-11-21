@@ -5,15 +5,15 @@
 #include <yaml-cpp/emitter.h>
 #include <yaml-cpp/stlemitter.h>
 
-#include "mcrl2/utilities/logger.h"
+#include "logger.h"
 #include "utilities.h"
 
 namespace graph
 {
 
-using mcrl2::log::verbose;
-using mcrl2::log::status;
-using mcrl2::log::debug;
+using log::verbose;
+using log::status;
+using log::debug;
 
 template <typename graph_t>
 class bfs_info;
@@ -81,7 +81,7 @@ public:
 
   void bfs(size_t start_node = 0)
   {
-    mCRL2log(verbose, "BFS") << "Starting search at vertex " << start_node << std::endl;
+    log(verbose, "BFS") << "Starting search at vertex " << start_node << std::endl;
 
     initialise();
 
@@ -210,7 +210,7 @@ public:
 
   size_t nodes_on_level(size_t i) const
   {
-    return m_nodes_per_level[i];
+    return *(m_nodes_per_level.find(i));
   }
 
   size_t back_level_edges() const
@@ -220,7 +220,7 @@ public:
 
   size_t back_level_edges_of_length(size_t i) const
   {
-    return m_back_level_edges_per_length[i];
+    return *(m_back_level_edges_per_length.find(i));
   }
 
   void yaml(YAML::Emitter& out) const

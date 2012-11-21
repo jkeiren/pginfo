@@ -37,7 +37,7 @@ protected:
 
   void dijkstra(VertexIndex s)
   {
-    mCRL2log(debug, "Dijkstra") << "Running SSSP with source " << s << " out of " << m_graph.size() << std::endl;
+    log(debug, "Dijkstra") << "Running SSSP with source " << s << " out of " << m_graph.size() << std::endl;
     initialise_single_source(s);
     m_vertex_queue.insert(std::make_pair(m_min_distance[s], s));
 
@@ -64,7 +64,7 @@ protected:
   // accordingly.
   void compute_diameter()
   {
-    mCRL2log(debug) << "Computing diameter using Dijkstra's SSSP algorithm from all sources" << std::endl;
+    log(debug) << "Computing diameter using Dijkstra's SSSP algorithm from all sources" << std::endl;
     for(VertexIndex i = 0; i < m_graph.size(); ++i)
     {
       dijkstra(i);

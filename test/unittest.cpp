@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
-#include "mcrl2/utilities/execution_timer.h"
-#include "mcrl2/utilities/logger.h"
+#include "execution_timer.h"
+#include "logger.h"
 
 #include "parsers/pgsolver.h"
 #include "cases.h"
@@ -19,7 +19,7 @@ typedef graph::KripkeStructure<graph::Vertex<graph::pg::Label> > graph_t;
 
 void load_graph(graph_t& pg, const std::string& s)
 {
-  mcrl2::utilities::execution_timer timer;
+  execution_timer timer;
   std::stringstream ss;
   ss << s;
   graph::load(pg, ss, timer);
@@ -179,4 +179,9 @@ TEST(SCC, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR)
   EXPECT_EQ(algorithm.terminal_sccs(), 1);
   EXPECT_EQ(algorithm.trivial_sccs(), 18);
   EXPECT_EQ(algorithm.quotient_height(), 7);
+}
+
+int main(int argc, char **argv) {
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }

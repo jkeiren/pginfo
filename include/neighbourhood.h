@@ -69,7 +69,7 @@ protected:
     m_edges_in_k_neighbourhood = 0;
     try
     {
-      bfs(v);
+      bfs_algorithm<graph_t>::bfs(v);
     }
     catch (done_exception&)
     {}

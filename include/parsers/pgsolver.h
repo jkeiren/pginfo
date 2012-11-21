@@ -161,16 +161,16 @@ namespace graph
 
   template<typename graph_t>
   void
-  load(graph_t& graph, std::istream& s, mcrl2::utilities::execution_timer& timer)
+  load(graph_t& graph, std::istream& s, execution_timer& timer)
   {
-    mCRL2log(mcrl2::log::verbose)
+    log(log::verbose)
       << "Loading parity game." << std::endl;
     timer.start("load");
     graph::Parser<typename graph_t::vertex_t, graph::pgsolver> parser(
         graph);
     parser.load(s);
     timer.finish("load");
-    mCRL2log(mcrl2::log::verbose)
+    log(log::verbose)
       << "Parity game contains " << graph.size() << " nodes and "
           << graph.num_edges() << " edges." << std::endl;
   }
@@ -187,7 +187,7 @@ namespace graph
     }
     else
       input_filename = "standard input";
-    mCRL2log(mcrl2::log::verbose)
+    log(log::verbose)
       << "Reading from " << input_filename << "." << std::endl;
     return *instream;
   }

@@ -22,7 +22,7 @@ protected:
 
   void compute_sccs()
   {
-    mCRL2log(verbose) << "Computing strongly connected components" << std::endl;
+    log(verbose) << "Computing strongly connected components" << std::endl;
     using namespace graph;
     impl::tarjan_iterative(m_graph.vertices(), m_sccs, true);
     impl::guarantee_vertex0_in_scc0(m_graph.vertices(), m_sccs);
@@ -32,7 +32,7 @@ protected:
 
   std::map<VertexIndex, size_t> vertices_per_scc() const
   {
-    mCRL2log(debug) << "Determining vertices per SCC" << std::endl;
+    log(debug) << "Determining vertices per SCC" << std::endl;
     std::map<VertexIndex, size_t> result;
     for(std::vector<VertexIndex>::const_iterator i = m_sccs.begin(); i != m_sccs.end(); ++i)
     {
@@ -74,14 +74,14 @@ public:
   // Compute quotient height
   size_t quotient_height() const
   {
-    mCRL2log(debug) << "Determining quotient height" << std::endl;
+    log(debug) << "Determining quotient height" << std::endl;
     quotient_height_impl(m_quotient_graph.vertex(0));
   }
 
   // Count trivial sccs (size 1)
   size_t trivial_sccs() const
   {
-    mCRL2log(debug) << "Counting trivial SCCs" << std::endl;
+    log(debug) << "Counting trivial SCCs" << std::endl;
     size_t result = 0;
     std::map<VertexIndex, size_t> vertices_per_scc_ = vertices_per_scc();
 
@@ -98,7 +98,7 @@ public:
   // Count terminal sccs
   size_t terminal_sccs() const
   {
-    mCRL2log(debug) << "Counting terminal SCCs" << std::endl;
+    log(debug) << "Counting terminal SCCs" << std::endl;
     size_t result = 0;
     for(typename std::vector<typename graph_t::vertex_t>::const_iterator i = m_quotient_graph.vertices().begin(); i != m_quotient_graph.vertices().end(); ++i)
     {
