@@ -5,15 +5,15 @@
 #include <yaml-cpp/emitter.h>
 #include <yaml-cpp/stlemitter.h>
 
-#include "logger.h"
+#include "cpplogging/logger.h"
 #include "utilities.h"
 
 namespace graph
 {
 
-using log::verbose;
-using log::status;
-using log::debug;
+using cpplogging::verbose;
+using cpplogging::status;
+using cpplogging::debug;
 
 template <typename graph_t>
 class bfs_info;

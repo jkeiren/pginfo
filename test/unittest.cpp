@@ -1,10 +1,11 @@
 #include <gtest/gtest.h>
-#include "execution_timer.h"
-#include "logger.h"
+
+#include "cppcli/execution_timer.h"
+#include "cpplogging/logger.h"
 
 #include "parsers/pgsolver.h"
-#include "cases.h"
 
+#include "cases.h"
 #include "graph_statistics.h"
 #include "alternation_depth.h"
 #include "bfs_info.h"

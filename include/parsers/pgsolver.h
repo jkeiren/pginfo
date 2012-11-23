@@ -163,14 +163,14 @@ namespace graph
   void
   load(graph_t& graph, std::istream& s, execution_timer& timer)
   {
-    log(log::verbose)
+    log(cpplogging::verbose)
       << "Loading parity game." << std::endl;
     timer.start("load");
     graph::Parser<typename graph_t::vertex_t, graph::pgsolver> parser(
         graph);
     parser.load(s);
     timer.finish("load");
-    log(log::verbose)
+    log(cpplogging::verbose)
       << "Parity game contains " << graph.size() << " nodes and "
           << graph.num_edges() << " edges." << std::endl;
   }
@@ -187,7 +187,7 @@ namespace graph
     }
     else
       input_filename = "standard input";
-    log(log::verbose)
+    log(cpplogging::verbose)
       << "Reading from " << input_filename << "." << std::endl;
     return *instream;
   }

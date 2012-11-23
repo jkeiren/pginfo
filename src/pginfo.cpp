@@ -1,7 +1,7 @@
 #include "yaml-cpp/yaml.h"
 
-#include "input_tool.h"
-#include "logger.h"
+#include "cppcli/input_tool.h"
+#include "cpplogging/logger.h"
 #include "pg.h"
 #include "parsers/pgsolver.h"
 
@@ -50,7 +50,7 @@ public:
   bool run()
   {
     std::istream& instream = graph::open_input(m_input_filename, m_ifstream);
-    log(log::verbose)
+    log(cpplogging::verbose)
       << "Computing statistics of parity game." << std::endl;
 
     typedef graph::KripkeStructure<graph::Vertex<graph::pg::Label> > graph_t;

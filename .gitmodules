@@ -1,9 +1,9 @@
 [submodule "external/googletest"]
 	path = external/googletest
 	url = https://github.com/JanX2/googletest.git
-[submodule "external/logging"]
-	path = external/logging
-	url = https://github.com/jkeiren/logging
-[submodule "external/commandline"]
-	path = external/commandline
+[submodule "external/cpplogging"]
+	path = external/cpplogging
+	url = https://github.com/jkeiren/logging.git
+[submodule "external/cppcli"]
+	path = external/cppcli
 	url = https://github.com/jkeiren/commandline.git

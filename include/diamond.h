@@ -5,16 +5,16 @@
 #include <algorithm>
 #include "graph.h"
 
-#include "logger.h"
+#include "cpplogging/logger.h"
 //#include "progress_meter.h"
 #include "utilities.h"
 
 namespace graph
 {
 
-using log::verbose;
-using log::status;
-using log::debug;
+using cpplogging::verbose;
+using cpplogging::status;
+using cpplogging::debug;
 
 /*
    @brief Count the number of 2-diamonds in the graph.
