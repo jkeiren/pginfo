@@ -1,255 +1,152 @@
 #ifndef BFS_INFO_H
 #define BFS_INFO_H
 
-#include <deque>
-#include <yaml-cpp/emitter.h>
-#include <yaml-cpp/stlemitter.h>
+#include <boost/graph/breadth_first_search.hpp>
 
-#include "cpplogging/logger.h"
-#include "utilities.h"
-
-namespace graph
+template<typename key_t>
+void increment(std::map<key_t, size_t>& m, const key_t& k)
 {
+  if(m.find(k) == m.end())
+  {
+    m[k] = 1;
+  }
+  else
+  {
+    ++m[k];
+  }
+}
 
-using cpplogging::verbose;
-using cpplogging::status;
-using cpplogging::debug;
-
-template <typename graph_t>
-class bfs_info;
-
-template <typename graph_t>
-class bfs_algorithm
+namespace detail
 {
-protected:
-  typedef graph::VertexIndex VertexIndex;
-  typedef typename graph_t::vertex_t vertex_t;
+template <typename T>
+struct is_equal
+{
+  T x;
+  is_equal(const T& x_)
+    : x(x_)
+  {}
 
-  typedef enum
+  bool operator()(const T& other)
   {
-    white,
-    grey,
-    black
-  } color_t;
-
-  const graph_t& m_graph;
-  std::deque<VertexIndex> m_queue;
-  std::vector<size_t> m_level; // The level at which the node is visited.
-  std::vector<VertexIndex> m_parent;
-  std::vector<color_t> m_color; // Color
-
-  virtual
-  void initialise()
-  {
-    m_queue.clear();
-    m_level = std::vector<size_t>(m_graph.size(), std::numeric_limits<size_t>::max()), // The level at which the node is visited.
-    m_parent = std::vector<size_t>(m_graph.size(), std::numeric_limits<VertexIndex>::max()),
-    m_color = std::vector<color_t>(m_graph.size(), white);
+    return other == x;
   }
-
-  virtual
-  void push(const VertexIndex v)
-  {
-    m_queue.push_back(v);
-  }
-
-  virtual
-  VertexIndex pop()
-  {
-    VertexIndex ret = m_queue.front();
-    m_queue.pop_front();
-    return ret;
-  }
-
-  virtual
-  void old_node_seen(const VertexIndex current_node, const VertexIndex old_node)
-  {}
-
-  virtual
-  void new_node_seen(const VertexIndex current_node, const VertexIndex new_node)
-  {}
-
-  virtual
-  void start_level(const size_t level, const size_t num_vertices)
-  {}
-
-  virtual
-  void start_iteration(const size_t n)
-  {}
-
-public:
-
-  void bfs(size_t start_node = 0)
-  {
-    log(verbose, "BFS") << "Starting search at vertex " << start_node << std::endl;
-
-    initialise();
-
-    m_color[start_node] = grey;
-    m_level[start_node] = 0;
-    push(start_node);
-
-    size_t visited = 0;
-    size_t todo_this_level = 1;
-    size_t todo_next_level = 0;
-    start_level(0, 1);
-
-    while(!m_queue.empty())
-    {
-      start_iteration(++visited);
-
-      VertexIndex ui = pop();
-      --todo_this_level;
-      vertex_t u = m_graph.vertex(ui);
-
-      for(std::set<VertexIndex>::const_iterator i = u.out.begin(); i != u.out.end(); ++i)
-      {
-        if(m_color[*i] == white)
-        {
-          // never seen this node before
-          m_color[*i] = grey;
-          m_level[*i] = m_level[ui] + 1;
-          m_parent[*i] = ui;
-          push(*i);
-          ++todo_next_level;
-          new_node_seen(ui, *i);
-        }
-        else // color is grey or black
-        {
-          old_node_seen(ui, *i);
-        }
-      }
-
-      m_color[ui] = black;
-
-      if(todo_this_level == 0)
-      {
-        start_level(m_level[ui] + 1, todo_next_level);
-        todo_this_level = todo_next_level;
-        todo_next_level = 0;
-      }
-    }
-  }
-
-  bfs_algorithm(const graph_t& g)
-    : m_graph(g)
-  {}
 };
 
-template <typename graph_t>
-class bfs_info : public bfs_algorithm<graph_t>
+template<typename BackEdgeMap, typename DistanceMap>
+class back_edge_recorder: public boost::default_bfs_visitor
 {
 protected:
+  size_t& m_back_edges;
+  BackEdgeMap& m_back_level_edges_per_length;
+  const DistanceMap& m_distance;
 
-  typedef bfs_algorithm<graph_t> super;
-  typedef typename super::VertexIndex VertexIndex;
-  typedef typename super::vertex_t vertex_t;
-
-  using super::m_level;
-  using super::m_queue;
-
-  bool m_details;
-  size_t m_back_level_edges;
-  std::map<size_t, size_t> m_back_level_edges_per_length;
-
-  virtual
-  void old_node_seen(const VertexIndex current_node, const VertexIndex old_node)
-  {
-    // Record back level edge
-    // note: take care of nodes on the next level with multiple edges...
-    if(m_level[current_node] >= m_level[old_node])
-    {
-      size_t length = m_level[current_node] - m_level[old_node];
-      ++m_back_level_edges;
-      increment(m_back_level_edges_per_length, length);
-    }
-  }
-
-  virtual
-  void new_node_seen()
+public:
+  back_edge_recorder(size_t& c, BackEdgeMap& m, const DistanceMap& d)
+    : m_back_edges(c), m_back_level_edges_per_length(m), m_distance(d)
   {}
 
-  std::map<size_t, size_t> m_nodes_per_level;
-  size_t m_levels;
+  typedef boost::on_non_tree_edge event_filter;
 
-  virtual
-  void start_level(const size_t level, const size_t num_vertices)
-  {
-    if(num_vertices != 0) // if it is 0, we are done! Do not record empty level at end of execution
+  template<typename Edge, typename Graph>
+  void operator()(Edge e, const Graph& g) {
+    typename boost::graph_traits<Graph>::vertex_descriptor
+      u = source(e, g), v = target(e, g);
+    if(m_distance[u] >= m_distance[v])
     {
-      m_levels = level;
-      m_nodes_per_level[level] = num_vertices;
+      size_t delta = m_distance[u] - m_distance[v];
+      ++m_back_edges;
+      increment(m_back_level_edges_per_length, delta);
     }
   }
+};
 
-  size_t m_max_queue_size;
-  std::map<size_t, size_t> m_queue_size_per_visited_node;
+template< typename BackEdgeMap, typename DistanceMap >
+back_edge_recorder<BackEdgeMap, DistanceMap>
+record_back_edges(size_t& n, BackEdgeMap& m, const DistanceMap& d)
+{
+  return back_edge_recorder<BackEdgeMap, DistanceMap>(n, m, d);
+}
 
-  virtual
-  void start_iteration(const size_t n)
+} // namespace detail
+
+template<typename Graph>
+class bfs_info
+{
+protected:
+  const Graph& m_g;
+  typedef typename Graph::vertex_descriptor vertex_t;
+  typedef typename boost::graph_traits<Graph>::vertices_size_type vertex_size_t;
+
+  std::vector<vertex_size_t> m_distances;
+  size_t m_back_edges;
+  std::map<vertex_size_t, vertex_size_t> m_back_edge_map;
+  std::map<size_t, size_t> m_nodes_per_level;
+
+  void compute()
   {
-    m_max_queue_size = (std::max)(m_max_queue_size, m_queue.size());
-    m_queue_size_per_visited_node[n] = m_queue.size();
+    vertex_t v = *(boost::vertices(m_g).first);
+
+    boost::breadth_first_search(m_g, v,
+            boost::visitor(boost::make_bfs_visitor(std::make_pair(
+              boost::record_distances(&m_distances[0], boost::on_tree_edge()),
+              detail::record_back_edges(m_back_edges, m_back_edge_map, &m_distances[0]))
+        ))
+        );
+
+    for(auto i: m_distances)
+    {
+      increment(m_nodes_per_level, i);
+    }
   }
 
 public:
-  bfs_info(graph_t& g, bool details=false)
-    : super(g),
-      m_details(details),
-      m_levels(0),
-      m_back_level_edges(0),
-      m_max_queue_size(0)
+  bfs_info(const Graph& g)
+    : m_g(g),
+      m_distances(num_vertices(g), 0),
+      m_back_edges(0)
   {
-    super::bfs();
+    cpplog(cpplogging::debug) << "Computing BFS info" << std::endl;
+    compute();
   }
 
   size_t get_levels() const
   {
-    return m_levels;
+    return *std::max_element(m_distances.begin(), m_distances.end());
   }
 
-  size_t nodes_on_level(size_t i) const
+  size_t nodes_on_level(const size_t i) const
   {
-    return *(m_nodes_per_level.find(i));
+    std::map<size_t, size_t>::const_iterator it = m_nodes_per_level.find(i);
+    if(it == m_nodes_per_level.end())
+      return 0;
+    else
+      return it->second;
   }
 
   size_t back_level_edges() const
   {
-    return m_back_level_edges;
+    return m_back_edges;
   }
 
-  size_t back_level_edges_of_length(size_t i) const
+  size_t back_edges_of_length(const size_t i) const
   {
-    return *(m_back_level_edges_per_length.find(i));
+    std::map<size_t, size_t>::const_iterator it = m_back_edge_map.find(i);
+    if(it == m_back_edge_map.end())
+      return 0;
+    else
+      return it->second;
   }
 
-  void yaml(YAML::Emitter& out) const
+  const std::map<size_t, size_t>& back_edge_map() const
   {
-    out << YAML::BeginMap
-        << YAML::Key << "Number of levels (BFS height)"
-        << YAML::Value << m_levels
-        << YAML::Key << "Nodes per level"
-        << YAML::Value << m_nodes_per_level
-        << YAML::Key << "Number of back level edges"
-        << YAML::Value << m_back_level_edges
-        << YAML::Key << "Lengths of back level edges"
-        << YAML::Value << m_back_level_edges_per_length;
-    if(m_details)
-    {
-      out << YAML::Key << "Queue size per visited node"
-          << YAML::Value << m_queue_size_per_visited_node;
-    }
-    out << YAML::EndMap;
+    return m_back_edge_map;
   }
+
+  const std::map<size_t, size_t>& nodes_per_level() const
+  {
+    return m_nodes_per_level;
+  }
+
 };
-
-template <typename graph_t>
-YAML::Emitter& operator<<(YAML::Emitter& out, const bfs_info<graph_t>& info)
-{
-  info.yaml(out);
-  return out;
-}
-
-} // namespace graph
 
 #endif // BFS_INFO_H

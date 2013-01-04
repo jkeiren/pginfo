@@ -1,90 +1,88 @@
+// Author(s): Jeroen Keiren
+// Copyright: see the accompanying file COPYING or copy at
+// https://svn.win.tue.nl/trac/MCRL2/browser/trunk/COPYING
+//
+// Distributed under the Boost Software License, Version 1.0.
+// (See accompanying file LICENSE_1_0.txt or copy at
+// http://www.boost.org/LICENSE_1_0.txt)
+//
+/// \file /path/to/file.ext
+/// \brief Description comes here
+
 #ifndef GIRTH_H
 #define GIRTH_H
 
-#include "bfs_info.h"
+#include <limits>
+#include <boost/graph/breadth_first_search.hpp>
 
-namespace graph
+namespace detail
 {
-
-template <typename graph_t>
-class girth_info : bfs_algorithm<graph_t>
+template<typename T>
+void update_girth(size_t& girth, ptrdiff_t x)
 {
-protected:
-  typedef bfs_algorithm<graph_t> super;
-  typedef typename super::VertexIndex VertexIndex;
-  typedef typename super::vertex_t vertex_t;
+  // skip
+}
 
-  size_t m_girth;
-  using super::m_color;
-  using super::m_level;
-  using super::m_graph;
-  using super::black;
+template<>
+void update_girth<boost::on_black_target>(size_t& girth, ptrdiff_t x)
+{
+  assert(x >= 1);
+  girth = std::min(girth, static_cast<size_t>(x));
+}
 
-  class done_exception : public std::exception
+template<typename DistanceMap, class Tag>
+struct girth_recorder: public boost::default_bfs_visitor
+{
+  const DistanceMap& d;
+  size_t& girth;
+
+  girth_recorder(const DistanceMap& d_, size_t& girth_)
+    : d(d_), girth(girth_)
+  {}
+
+  typedef Tag event_filter;
+
+  template<typename Edge, typename Graph>
+  void operator()(Edge e, Graph& g)
   {
-    public:
-      done_exception() : std::exception()
-      {}
-  };
+    typename Graph::vertex_descriptor u = boost::source(e,g), v = boost::target(e,g);
 
-  virtual
-  void old_node_seen(const VertexIndex current_node, const VertexIndex old_node)
-  {
-    if(current_node == old_node) // self loop
-    {
-      m_girth = 1;
-    }
-    else if(m_color[old_node] == black) // cross-level edge
-    {
-      m_girth = (std::min)(m_girth, m_level[current_node] - m_level[old_node] + 1);
-    }
-    throw done_exception();
-  }
-
-  void compute_girth()
-  {
-    for(VertexIndex i = 0; i < m_graph.size(); ++i)
-    {
-      try
-      {
-        super::bfs(i);
-      }
-      catch(done_exception&)
-      {}
-
-      if(m_girth == 1)
-      {
-        break;
-      }
-    }
-  }
-
-public:
-  girth_info(const graph_t& g)
-    : super(g),
-      m_girth(std::numeric_limits<size_t>::max())
-  {
-    compute_girth();
-  }
-
-  size_t girth() const
-  {
-    return m_girth;
-  }
-
-  void yaml(YAML::Emitter& out) const
-  {
-    out << girth();
+    if(u == v)
+      girth = 1;
+    else
+      update_girth<Tag>(girth, d[u] - d[v] + 1);
   }
 };
 
-template <typename graph_t>
-YAML::Emitter& operator<<(YAML::Emitter& out, const girth_info<graph_t>& info)
+template<typename DistanceMap, class Tag>
+girth_recorder<DistanceMap, Tag>
+record_girth(const DistanceMap& d, size_t& girth, Tag)
 {
-  info.yaml(out);
-  return out;
+  return girth_recorder<DistanceMap, Tag>(d, girth);
 }
 
-} // namespace graph
+}
+
+template <typename Graph>
+size_t girth(const Graph& g)
+{
+  typedef typename boost::graph_traits<Graph>::vertices_size_type vertex_size_t;
+  typename boost::graph_traits<Graph>::vertex_iterator i, end;
+
+  size_t result = std::numeric_limits<size_t>::max();
+
+  for (boost::tie(i, end) = vertices(g); i != end; ++i)
+  {
+    std::vector<vertex_size_t> d(num_vertices(g), 0);
+    boost::breadth_first_search(g, *i,
+      boost::visitor(boost::make_bfs_visitor(std::make_pair(
+        boost::record_distances(&d[0], boost::on_tree_edge()), std::make_pair(
+        detail::record_girth(d, result, boost::on_black_target()),
+        detail::record_girth(d, result, boost::on_gray_target()))))
+      ));
+
+  }
+  return result;
+}
 
 #endif // GIRTH_H

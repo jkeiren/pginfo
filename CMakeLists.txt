@@ -4,14 +4,19 @@ project (pginfo)
 # Include scripts
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/scripts")
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+set(CMAKE_CXX_FLAGS_ANALYSIS "${CMAKE_CXX_FLAGS} --analyse")
+
 # Include external libraries
 add_subdirectory(external/googletest)
-add_subdirectory(external/cppcli)
+set(CPPLOGGING_STANDALONE OFF)
 add_subdirectory(external/cpplogging)
+set(CPPCLI_STANDALONE OFF)
+add_subdirectory(external/cppcli)
 
 # Trick to add header files to projects in IDEs like Visual Studio and XCode
-FILE(GLOB HEADERS "include/**.h")
-FILE(GLOB SOURCES "src/**.h")
+FILE(GLOB_RECURSE HEADERS "include/**.h")
+FILE(GLOB_RECURSE SOURCES "src/**.h")
 add_custom_target(${PROJECT_NAME}_headers
   SOURCES ${HEADERS} ${SUB_HEADERS}
 )
@@ -19,15 +24,22 @@ add_custom_target(${PROJECT_NAME}_headers
 # Search for YamlCpp; we depend on this for logging output.
 find_package(YamlCpp REQUIRED)
 
+find_package(Boost REQUIRED COMPONENTS graph)
+
 include_directories(
   include
   ${cpplogging_SOURCE_DIR}/include
   ${cppcli_SOURCE_DIR}/include
   ${YAMLCPP_INCLUDE_DIR}
+  ${Boost_INCLUDE_DIR}
 )
 
 add_executable (pginfo
   src/pginfo.cpp
+)
+
+add_executable (example
+  src/example.cpp
 )
 
 target_link_libraries (pginfo ${YAMLCPP_LIBRARY} cppcli cpplogging)
