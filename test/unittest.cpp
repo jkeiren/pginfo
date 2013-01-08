@@ -18,8 +18,9 @@
 #include "diameter.h"
 #include "diamond.h"
 #include "girth.h"
-#include "neighbourhood.h" // TODO add test
+#include "neighbourhood.h"
 #include "scc_info.h"
+#include "entanglement.h"
 
 void load_graph(parity_game_t& pg, const std::string& s)
 {
@@ -266,6 +267,15 @@ TEST(Wavefront, ABP_NODEADLOCK)
   EXPECT_NEAR(5.30666, boost::aver_wavefront(pg), 0.00001);
   EXPECT_NEAR(5.55457, boost::rms_wavefront(pg), 0.00001);
   EXPECT_EQ(9, boost::max_wavefront(pg));
+}
+
+TEST(Entanglement, ABP_NODEADLOCK)
+{
+  parity_game_t pg;
+  load_graph(pg, ABP_NODEADLOCK);
+  EXPECT_FALSE(entanglement(pg, 0));
+  EXPECT_FALSE(entanglement(pg, 1));
+  EXPECT_TRUE(entanglement(pg, 2));
 }
 
 int main(int argc, char **argv) {
