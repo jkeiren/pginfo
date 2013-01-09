@@ -4,6 +4,15 @@
 #include <string>
 
 const std::string
+BUFFER_NODEADLOCK(
+  "parity 3;\n"
+  "0 0 1 1;\n"
+  "1 0 1 2, 3;\n"
+  "2 0 1 1;\n"
+  "3 0 1 1;\n"
+);
+
+const std::string
 ABP_NODEADLOCK(
   "parity 74;\n"
   "0 0 1 1;\n"

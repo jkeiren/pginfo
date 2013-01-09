@@ -30,6 +30,23 @@ void load_graph(parity_game_t& pg, const std::string& s)
   parse_pgsolver(pg, ss, timer);
 }
 
+TEST(GraphStats, BUFFER_NODEADLOCK)
+{
+  parity_game_t pg;
+  load_graph(pg, BUFFER_NODEADLOCK);
+  EXPECT_EQ(4, boost::num_vertices(pg));
+  EXPECT_EQ(5, boost::num_edges(pg));
+  EXPECT_DOUBLE_EQ(4.0/5.0, avg_degree(pg));
+  EXPECT_EQ(1, min_degree(pg));
+  EXPECT_EQ(5, max_degree(pg));
+  EXPECT_DOUBLE_EQ(5.0/4.0, avg_in_degree(pg));
+  EXPECT_EQ(0, min_in_degree(pg));
+  EXPECT_EQ(3, max_in_degree(pg));
+  EXPECT_DOUBLE_EQ(5.0/4.0, avg_out_degree(pg));
+  EXPECT_EQ(1, min_out_degree(pg));
+  EXPECT_EQ(2, max_out_degree(pg));
+}
+
 TEST(GraphStats, ABP_NODEADLOCK)
 {
   parity_game_t pg;
@@ -64,6 +81,14 @@ TEST(GraphStats, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR)
   EXPECT_EQ(4, max_out_degree(pg));
 }
 
+TEST(GameStats, BUFFER_NODEADLOCK)
+{
+  parity_game_t pg;
+  load_graph(pg, BUFFER_NODEADLOCK);
+  EXPECT_EQ(0, num_even_vertices(pg));
+  EXPECT_EQ(4, num_odd_vertices(pg));
+}
+
 TEST(GameStats, ABP_NODEADLOCK)
 {
   parity_game_t pg;
@@ -96,12 +121,21 @@ TEST(AlternationDepth, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR)
 }
 */
 
+TEST(BFS, BUFFER_NODEADLOCK)
+{
+  parity_game_t pg;
+  load_graph(pg, BUFFER_NODEADLOCK);
+  bfs_info<parity_game_t> algorithm(pg);
+  EXPECT_EQ(3, algorithm.get_levels());
+  EXPECT_EQ(2, algorithm.back_level_edges());
+}
+
 TEST(BFS, ABP_NODEADLOCK)
 {
   parity_game_t pg;
   load_graph(pg, ABP_NODEADLOCK);
   bfs_info<parity_game_t> algorithm(pg);
-  EXPECT_EQ(20, algorithm.get_levels());
+  EXPECT_EQ(21, algorithm.get_levels());
   EXPECT_EQ(14, algorithm.back_level_edges());
 }
 
@@ -110,8 +144,15 @@ TEST(BFS, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR)
   parity_game_t pg;
   load_graph(pg, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR);
   bfs_info<parity_game_t> algorithm(pg);
-  EXPECT_EQ(20, algorithm.get_levels());
+  EXPECT_EQ(21, algorithm.get_levels());
   EXPECT_EQ(25, algorithm.back_level_edges());
+}
+
+TEST(DFS, BUFFER_NODEADLOCK)
+{
+  parity_game_t pg;
+  load_graph(pg, BUFFER_NODEADLOCK);;
+  EXPECT_EQ(3, dfs_max_stacksize(pg));
 }
 
 TEST(DFS, ABP_NODEADLOCK)
@@ -130,6 +171,13 @@ TEST(DFS, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR)
   EXPECT_EQ(21, dfs_max_stacksize(pg));
 }
 
+TEST(Diameter, BUFFER_NODEADLOCK)
+{
+  parity_game_t pg;
+  load_graph(pg, BUFFER_NODEADLOCK);
+  EXPECT_EQ(2, diameter(pg));
+}
+
 TEST(Diameter, ABP_NODEADLOCK)
 {
   parity_game_t pg;
@@ -142,6 +190,13 @@ TEST(Diameter, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR)
   parity_game_t pg;
   load_graph(pg, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR);
   EXPECT_EQ(30, diameter(pg));
+}
+
+TEST(Diamond, BUFFER_NODEADLOCK)
+{
+  parity_game_t pg;
+  load_graph(pg, BUFFER_NODEADLOCK);
+  EXPECT_EQ(1, diamond_count(pg));
 }
 
 TEST(Diamond, ABP_NODEADLOCK)
@@ -178,6 +233,13 @@ TEST(Diamond, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR)
    */
 }
 
+TEST(Girth, BUFFER_NODEADLOCK)
+{
+  parity_game_t pg;
+  load_graph(pg, BUFFER_NODEADLOCK);
+  EXPECT_EQ(2, girth(pg));
+}
+
 TEST(Girth, ABP_NODEADLOCK)
 {
   parity_game_t pg;
@@ -192,6 +254,17 @@ TEST(Girth, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR)
   EXPECT_EQ(1, girth(pg));
 }
 
+TEST(SCC, BUFFER_NODEADLOCK)
+{
+  parity_game_t pg;
+  load_graph(pg, BUFFER_NODEADLOCK);
+  scc_info<parity_game_t> algorithm(pg);
+  EXPECT_EQ(2, algorithm.sccs());
+  EXPECT_EQ(1, algorithm.terminal_sccs());
+  EXPECT_EQ(1, algorithm.trivial_sccs());
+  EXPECT_EQ(2, algorithm.quotient_height());
+}
+
 TEST(SCC, ABP_NODEADLOCK)
 {
   parity_game_t pg;
@@ -200,7 +273,7 @@ TEST(SCC, ABP_NODEADLOCK)
   EXPECT_EQ(2, algorithm.sccs());
   EXPECT_EQ(1, algorithm.terminal_sccs());
   EXPECT_EQ(1,algorithm.trivial_sccs());
-  EXPECT_EQ(1,algorithm.quotient_height());
+  EXPECT_EQ(2,algorithm.quotient_height());
 }
 
 TEST(SCC, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR)
@@ -211,7 +284,22 @@ TEST(SCC, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR)
   EXPECT_EQ(23, algorithm.sccs());
   EXPECT_EQ(1, algorithm.terminal_sccs());
   EXPECT_EQ(18,algorithm.trivial_sccs());
-  EXPECT_EQ(7,algorithm.quotient_height());
+  EXPECT_EQ(8,algorithm.quotient_height());
+}
+
+TEST(Neighbourhood, BUFFER_NODEADLOCK)
+{
+  parity_game_t pg;
+  load_graph(pg, BUFFER_NODEADLOCK);
+  EXPECT_DOUBLE_EQ(avg_out_degree(pg), avg_kneighbourhood(pg, 1));
+  EXPECT_EQ(2, max_kneighbourhood(pg, 1));
+  EXPECT_EQ(1, min_kneighbourhood(pg, 1));
+  EXPECT_DOUBLE_EQ(9.0/4.0, avg_kneighbourhood(pg, 2));
+  EXPECT_EQ(3, max_kneighbourhood(pg, 2));
+  EXPECT_EQ(2, min_kneighbourhood(pg, 2));
+  EXPECT_DOUBLE_EQ(9.0/4.0, avg_kneighbourhood(pg, 3));
+  EXPECT_EQ(3, max_kneighbourhood(pg, 3));
+  EXPECT_EQ(2, min_kneighbourhood(pg, 3));
 }
 
 TEST(Neighbourhood, ABP_NODEADLOCK)
@@ -260,6 +348,15 @@ TEST(Neighbourhood, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR)
   EXPECT_EQ(0, min_kneighbourhood(pg, 5));
 }
 
+TEST(Wavefront, BUFFER_NODEADLOCK)
+{
+  parity_game_t pg;
+  load_graph(pg, BUFFER_NODEADLOCK);
+  EXPECT_NEAR(2.0, boost::aver_wavefront(pg), 0.00001);
+  EXPECT_NEAR(2.12132, boost::rms_wavefront(pg), 0.00001);
+  EXPECT_EQ(3, boost::max_wavefront(pg));
+}
+
 TEST(Wavefront, ABP_NODEADLOCK)
 {
   parity_game_t pg;
@@ -269,17 +366,36 @@ TEST(Wavefront, ABP_NODEADLOCK)
   EXPECT_EQ(9, boost::max_wavefront(pg));
 }
 
+TEST(Wavefront, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR)
+{
+  parity_game_t pg;
+  load_graph(pg, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR);
+  EXPECT_NEAR(14.85606, boost::aver_wavefront(pg), 0.00001);
+  EXPECT_NEAR(16.05317, boost::rms_wavefront(pg), 0.00001);
+  EXPECT_EQ(25, boost::max_wavefront(pg));
+}
+
+TEST(Entanglement, BUFFER_NODEADLOCK)
+{
+  parity_game_t pg;
+  load_graph(pg, BUFFER_NODEADLOCK);
+  EXPECT_FALSE(entanglement(pg, 0));
+  for(size_t i = 1; i <= 4; ++i) // only have 4 vertices, so no use of going beyond 4
+    EXPECT_TRUE(entanglement(pg, i));
+}
+
 TEST(Entanglement, ABP_NODEADLOCK)
 {
   parity_game_t pg;
   load_graph(pg, ABP_NODEADLOCK);
   EXPECT_FALSE(entanglement(pg, 0));
-  EXPECT_FALSE(entanglement(pg, 1));
-  EXPECT_TRUE(entanglement(pg, 2));
+  //The following two are still too slow
+  //EXPECT_FALSE(entanglement(pg, 1));
+  //EXPECT_TRUE(entanglement(pg, 2));
 }
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
-  //cpplogging::logger::set_reporting_level(cpplogging::debug);
+  cpplogging::logger::set_reporting_level(cpplogging::verbose);
   return RUN_ALL_TESTS();
 }

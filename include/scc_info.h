@@ -78,7 +78,7 @@ public:
     boost::breadth_first_search(m_quotient_g, v,
             boost::visitor(boost::make_bfs_visitor(boost::record_distances(&d[0], boost::on_tree_edge()))
         ));
-    return *std::max_element(d.begin(), d.end());
+    return *std::max_element(d.begin(), d.end()) + 1;
   }
 
   size_t trivial_sccs() const

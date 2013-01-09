@@ -111,7 +111,7 @@ public:
 
   size_t get_levels() const
   {
-    return *std::max_element(m_distances.begin(), m_distances.end());
+    return *std::max_element(m_distances.begin(), m_distances.end()) + 1;
   }
 
   size_t nodes_on_level(const size_t i) const

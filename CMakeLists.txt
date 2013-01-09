@@ -16,9 +16,8 @@ add_subdirectory(external/cppcli)
 
 # Trick to add header files to projects in IDEs like Visual Studio and XCode
 FILE(GLOB_RECURSE HEADERS "include/**.h")
-FILE(GLOB_RECURSE SOURCES "src/**.h")
 add_custom_target(${PROJECT_NAME}_headers
-  SOURCES ${HEADERS} ${SUB_HEADERS}
+  SOURCES ${HEADERS}
 )
 
 # Search for YamlCpp; we depend on this for logging output.

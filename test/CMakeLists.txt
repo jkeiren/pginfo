@@ -6,6 +6,12 @@ project(unittest)
 
 enable_testing()
 
+# Trick to add header files to projects in IDEs like Visual Studio and XCode
+FILE(GLOB_RECURSE TEST_HEADERS "*.h")
+add_custom_target(${PROJECT_NAME}_headers
+  SOURCES ${TEST_HEADERS}
+)
+
 file(GLOB TEST_SOURCES "*.cpp")
 
 include_directories(

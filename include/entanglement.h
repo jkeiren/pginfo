@@ -20,6 +20,19 @@
 namespace detail
 {
 
+// for debugging
+template <typename T>
+std::string print(const std::multiset<T>& s)
+{
+  std::stringstream ss;
+  for(typename std::multiset<T>::const_iterator i = s.begin(); i != s.end(); ++ i)
+  {
+    if(i != s.begin()) ss << ", ";
+    ss << *i;
+  }
+  return ss.str();
+}
+
 // Combine the two steps into a single function
 // this allows for easier change to a manual stack with a while loop
 template <typename Graph, typename CopContainer>
@@ -33,6 +46,7 @@ bool entanglement_step(const Graph& g,
                        bool cop_turn = true)
 {
   typedef typename boost::graph_traits<Graph>::vertices_size_type vertex_size_t;
+  cpplog(cpplogging::debug) << indent << "robber: " << v << ", cops: " << print(d) << std::endl;
   if(cop_turn)
   {
     // result is true iff there is a step for the cops such that they
@@ -41,26 +55,15 @@ bool entanglement_step(const Graph& g,
     bool result = false;
     for(typename CopContainer::iterator i = d.begin(); i != d.end() && !result; ++i)
     {
+      // We cannot remove and insert in d directly, because this invalidates the iterator; use a copy instead
+      CopContainer d_ = d;
+      d_.erase(d_.find(*i));
+      d_.insert(v);
       cpplog(cpplogging::debug) << indent << "Cop step " << *i << " to " << v << std::endl;
-      d.erase(i);
-      d.insert(v);
-      std::pair<typename Graph::vertex_descriptor, CopContainer > config = std::make_pair(v,d);
-      if(visited.find(config) == visited.end())
-      {
-        visited.insert(config);
-        result |= entanglement_step(g, v, d, k, visited, indent + "  ", false);
-        visited.erase(config);
-      }
+      result |= entanglement_step(g, v, d_, k, visited, indent + "  ", false);
     }
     cpplog(cpplogging::debug) << indent << "Cop step " << "pass" << std::endl;
-    std::pair<typename Graph::vertex_descriptor, CopContainer > config = std::make_pair(v,d);
-    if(visited.find(config) == visited.end())
-    {
-      visited.insert(config);
-      result |= entanglement_step(g, v, d, k, visited, indent + "  ", false);
-      visited.erase(config);
-    }
-    //result |= entanglement_step(g, v, d, k, visited, indent + "  ", !cop_turn); // no change in cop position
+    result |= entanglement_step(g, v, d, k, visited, indent + "  ", false);
     return result;
   }
   else // robber's turn
@@ -73,6 +76,7 @@ bool entanglement_step(const Graph& g,
     // while we have not found a vertex to evade capture, try next.
     for(boost::tie(ai, aend) = boost::adjacent_vertices(v, g); ai != aend && caught; ++ai)
     {
+      cpplog(cpplogging::debug) << indent << "Checking robber step " << v << " to " << *ai << std::endl;
       if(d.find(*ai) == d.end())
       {
         // found successor vertex not covered by cop.
@@ -83,19 +87,19 @@ bool entanglement_step(const Graph& g,
         if(visited.find(config) == visited.end())
         {
           visited.insert(config);
-          cpplog(cpplogging::debug) << indent << "Robber step " << v << " to " << *ai << std::endl;
+          cpplog(cpplogging::debug) << indent << "Taking step " << v << " to " << *ai << std::endl;
           caught &= entanglement_step(g, *ai, d, k, visited, indent + "  ", true);
           visited.erase(config);
         }
         else
         {
-          cpplog(cpplogging::debug) << indent << "Cycle closed, robber can evade cops" << std::endl;
+          cpplog(cpplogging::debug) << indent << "Taking step closes cycle, robber can evade cops" << std::endl;
           caught = false;
         }
       }
       else
       {
-        cpplog(cpplogging::debug) << indent << "Robber step " << v << " to " << *ai << " is blocked by cop" << std::endl;
+        cpplog(cpplogging::debug) << indent << "Step " << v << " to " << *ai << " is blocked by cop" << std::endl;
       }
     }
     return caught;
