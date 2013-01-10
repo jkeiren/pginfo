@@ -27,14 +27,11 @@ kneighbourhood(typename Graph::vertex_descriptor v, const Graph& g, const size_t
   return std::count_if(d.begin(), d.end(), [&k](vertex_size_t x) { return 0 < x && x <= k; });
 }
 
-template<typename Graph, typename OutIter>
-void kneighbourhoods(const Graph& g, const size_t k, OutIter res)
+template<typename Graph>
+typename boost::graph_traits<Graph>::vertices_size_type
+neighbourhood(typename Graph::vertex_descriptor v, const Graph& g)
 {
-  typename boost::graph_traits<Graph>::vertex_iterator i, end;
-  for (boost::tie(i, end) = vertices(g); i != end; ++i)
-  {
-    *(res++) = kneighbourhood(*i, g, k);
-  }
+  return kneighbourhood(v, g, 1);
 }
 
 template<typename Graph>

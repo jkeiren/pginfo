@@ -13,20 +13,7 @@
 #define DIAMETER_H
 
 #include "pg.h"
-
-template<typename Graph>
-inline
-typename boost::graph_traits<Graph>::vertices_size_type
-bfs_depth(const Graph& g, typename Graph::vertex_descriptor v)
-{
-  typedef typename boost::graph_traits<Graph>::vertices_size_type vertex_size_t;
-  std::vector<vertex_size_t> d(num_vertices(g), 0);
-  boost::breadth_first_search(g, v,
-          boost::visitor(boost::make_bfs_visitor(
-            boost::record_distances(&d[0], boost::on_tree_edge()))
-      ));
-  return *std::max_element(d.begin(), d.end());
-}
+#include "bfs.h"
 
 template<typename Graph>
 inline
@@ -37,7 +24,7 @@ diameter(const Graph& g)
   typename boost::graph_traits<Graph>::vertex_iterator i, end;
   for (boost::tie(i, end) = vertices(g); i != end; ++i)
   {
-    result = std::max(result, bfs_depth(g, *i));
+    result = std::max(result, bfs_levels(g, *i) - 1);
   }
   return result;
 }

@@ -16,7 +16,6 @@
 
 namespace detail
 {
-
 template<class Tag>
 struct stack_push_recorder: public boost::default_dfs_visitor
 {
@@ -68,47 +67,16 @@ record_stack_pop(size_t& cur_stacksize)
 } // namespace detail
 
 template<typename Graph>
-class dfs_info
-{
-protected:
-  const Graph& m_g;
-  size_t m_max_stacksize;
-  size_t m_cur_stacksize;
-  typedef typename Graph::vertex_descriptor vertex_t;
-
-  void compute()
-  {
-    vertex_t v = *(boost::vertices(m_g).first);
-
-    boost::depth_first_search(m_g,
-        boost::visitor(boost::make_dfs_visitor(std::make_pair(
-            detail::record_stack_push(m_max_stacksize, m_cur_stacksize, boost::on_discover_vertex()),
-            detail::record_stack_pop(m_cur_stacksize))
-        )).root_vertex(v));
-    assert(m_cur_stacksize == 0);
-  }
-
-public:
-  dfs_info(const Graph& g)
-    : m_g(g),
-      m_max_stacksize(0),
-      m_cur_stacksize(0)
-  {
-    cpplog(cpplogging::debug) << "Computing DFS info" << std::endl;
-    compute();
-  }
-
-  size_t max_stacksize() const
-  {
-    return m_max_stacksize;
-  }
-};
-
-template<typename Graph>
 inline
-size_t dfs_max_stacksize(const Graph& g)
+size_t dfs_max_stacksize(const Graph& g, typename Graph::vertex_descriptor v = 0)
 {
-  return dfs_info<Graph>(g).max_stacksize();
+  size_t max = 0, cur = 0;
+  boost::depth_first_search(g,
+      boost::visitor(boost::make_dfs_visitor(std::make_pair(
+          detail::record_stack_push(max, cur, boost::on_discover_vertex()),
+          detail::record_stack_pop(cur))
+      )).root_vertex(v));
+  return max;
 }
 
 #endif // DFS_INFO_H

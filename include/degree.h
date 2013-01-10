@@ -9,8 +9,8 @@
 /// \file /path/to/file.ext
 /// \brief Description comes here
 
-#ifndef GRAPH_INFO_H
-#define GRAPH_INFO_H
+#ifndef DEGREE_H
+#define DEGREE_H
 
 #include <limits>
 
@@ -141,4 +141,19 @@ double avg_out_degree(const Graph& g)
   return static_cast<double>(sum)/static_cast<double>(boost::num_vertices(g));
 }
 
-#endif // GRAPH_INFO_H
+template <typename Graph>
+inline
+typename boost::graph_traits<Graph>::vertices_size_type
+vertices_out_degree_n(const Graph& g, const size_t n = 0)
+{
+  typename boost::graph_traits<Graph>::vertices_size_type result = 0;
+  typename boost::graph_traits< Graph >::vertex_iterator i, end;
+  for(boost::tie(i, end) = boost::vertices(g); i != end; ++i)
+  {
+    if(boost::out_degree(*i, g) == n)
+      ++result;
+  }
+  return result;
+}
+
+#endif // DEGREE_H

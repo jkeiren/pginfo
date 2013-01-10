@@ -11,18 +11,20 @@
 
 #include "cases.h"
 
-#include "graph_info.h"
+#include "degree.h"
 //#include "alternation_depth.h"
-#include "bfs_info.h"
-#include "dfs_info.h"
+#include "bfs.h"
+#include "dfs.h"
 #include "diameter.h"
 #include "diamond.h"
 #include "girth.h"
 #include "neighbourhood.h"
-#include "scc_info.h"
+#include "scc.h"
 #include "entanglement.h"
+#include "treewidth.h"
 
-void load_graph(parity_game_t& pg, const std::string& s)
+template<typename ParityGame>
+void load_graph(ParityGame& pg, const std::string& s)
 {
   execution_timer timer;
   std::stringstream ss;
@@ -125,27 +127,24 @@ TEST(BFS, BUFFER_NODEADLOCK)
 {
   parity_game_t pg;
   load_graph(pg, BUFFER_NODEADLOCK);
-  bfs_info<parity_game_t> algorithm(pg);
-  EXPECT_EQ(3, algorithm.get_levels());
-  EXPECT_EQ(2, algorithm.back_level_edges());
+  EXPECT_EQ(3, bfs_levels(pg));
+  EXPECT_EQ(2, back_level_edges(pg));
 }
 
 TEST(BFS, ABP_NODEADLOCK)
 {
   parity_game_t pg;
   load_graph(pg, ABP_NODEADLOCK);
-  bfs_info<parity_game_t> algorithm(pg);
-  EXPECT_EQ(21, algorithm.get_levels());
-  EXPECT_EQ(14, algorithm.back_level_edges());
+  EXPECT_EQ(21, bfs_levels(pg));
+  EXPECT_EQ(14, back_level_edges(pg));
 }
 
 TEST(BFS, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR)
 {
   parity_game_t pg;
   load_graph(pg, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR);
-  bfs_info<parity_game_t> algorithm(pg);
-  EXPECT_EQ(21, algorithm.get_levels());
-  EXPECT_EQ(25, algorithm.back_level_edges());
+  EXPECT_EQ(21, bfs_levels(pg));
+  EXPECT_EQ(25, back_level_edges(pg));
 }
 
 TEST(DFS, BUFFER_NODEADLOCK)
@@ -258,33 +257,30 @@ TEST(SCC, BUFFER_NODEADLOCK)
 {
   parity_game_t pg;
   load_graph(pg, BUFFER_NODEADLOCK);
-  scc_info<parity_game_t> algorithm(pg);
-  EXPECT_EQ(2, algorithm.sccs());
-  EXPECT_EQ(1, algorithm.terminal_sccs());
-  EXPECT_EQ(1, algorithm.trivial_sccs());
-  EXPECT_EQ(2, algorithm.quotient_height());
+  EXPECT_EQ(2, sccs(pg));
+  EXPECT_EQ(1, terminal_sccs(pg));
+  EXPECT_EQ(1, trivial_sccs(pg));
+  EXPECT_EQ(2, quotient_height(pg));
 }
 
 TEST(SCC, ABP_NODEADLOCK)
 {
   parity_game_t pg;
   load_graph(pg, ABP_NODEADLOCK);
-  scc_info<parity_game_t> algorithm(pg);
-  EXPECT_EQ(2, algorithm.sccs());
-  EXPECT_EQ(1, algorithm.terminal_sccs());
-  EXPECT_EQ(1,algorithm.trivial_sccs());
-  EXPECT_EQ(2,algorithm.quotient_height());
+  EXPECT_EQ(2, sccs(pg));
+  EXPECT_EQ(1, terminal_sccs(pg));
+  EXPECT_EQ(1, trivial_sccs(pg));
+  EXPECT_EQ(2, quotient_height(pg));
 }
 
 TEST(SCC, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR)
 {
   parity_game_t pg;
   load_graph(pg, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR);
-  scc_info<parity_game_t> algorithm(pg);
-  EXPECT_EQ(23, algorithm.sccs());
-  EXPECT_EQ(1, algorithm.terminal_sccs());
-  EXPECT_EQ(18,algorithm.trivial_sccs());
-  EXPECT_EQ(8,algorithm.quotient_height());
+  EXPECT_EQ(23, sccs(pg));
+  EXPECT_EQ(1, terminal_sccs(pg));
+  EXPECT_EQ(18, trivial_sccs(pg));
+  EXPECT_EQ(8, quotient_height(pg));
 }
 
 TEST(Neighbourhood, BUFFER_NODEADLOCK)
@@ -394,8 +390,26 @@ TEST(Entanglement, ABP_NODEADLOCK)
   //EXPECT_TRUE(entanglement(pg, 2));
 }
 
+TEST(Treewidth, BUFFER_NODEADLOCK)
+{
+  undirected_parity_game_t pg;
+  load_graph(pg, BUFFER_NODEADLOCK);
+  EXPECT_EQ(1, minor_min_width(pg));
+  EXPECT_EQ(1, greedy_degree(pg));
+  //EXPECT_EQ(1, treewidth(pg));
+}
+
+TEST(Treewidth, ABP_NODEADLOCK)
+{
+  undirected_parity_game_t pg;
+  load_graph(pg, ABP_NODEADLOCK);
+  EXPECT_EQ(2, minor_min_width(pg));
+  EXPECT_EQ(2, greedy_degree(pg));
+  //EXPECT_EQ(3, treewidth(pg));
+}
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
-  cpplogging::logger::set_reporting_level(cpplogging::verbose);
+  cpplogging::logger::set_reporting_level(cpplogging::debug);
   return RUN_ALL_TESTS();
 }

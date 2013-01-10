@@ -8,10 +8,11 @@
 namespace detail
 {
 
+template<typename ParityGame>
 class pgsolver_printer
 {
 public:
-  pgsolver_printer(parity_game_t& pg) :
+  pgsolver_printer(ParityGame& pg) :
     m_pg(pg)
   {
   }
@@ -23,8 +24,8 @@ public:
       return;
     s << "parity " << num_vertices(m_pg) - 1 << ";" << std::endl;
 
-    boost::graph_traits< parity_game_t >::vertex_iterator i, end;
-    boost::graph_traits< parity_game_t >::adjacency_iterator ai, aend;
+    typename boost::graph_traits< ParityGame >::vertex_iterator i, end;
+    typename boost::graph_traits< ParityGame >::adjacency_iterator ai, aend;
 
     for (boost::tie(i, end) = vertices(m_pg); i != end; ++i)
     {
@@ -46,13 +47,14 @@ public:
   }
 
 private:
-  parity_game_t& m_pg;
+  ParityGame& m_pg;
 };
 
+template<typename ParityGame>
 class pgsolver_parser
 {
   public:
-    pgsolver_parser(parity_game_t& pg) :
+    pgsolver_parser(ParityGame& pg) :
       m_pg(pg)
     {
     }
@@ -64,7 +66,7 @@ class pgsolver_parser
     }
 
   private:
-    parity_game_t& m_pg;
+    ParityGame& m_pg;
     void
     parse_error(std::istream& s, const char* msg)
     {
@@ -100,7 +102,7 @@ class pgsolver_parser
       size_t n;
       char c;
       s >> n;
-      m_pg = parity_game_t(n+1);
+      m_pg = ParityGame(n+1);
       s >> c;
       if (c != ';')
         parse_error(s, "Invalid header, expected semicolon.");
@@ -123,7 +125,7 @@ class pgsolver_parser
         add_vertex(m_pg);
 
       assert(index < boost::num_vertices(m_pg));
-      parity_game_t::vertex_descriptor v = vertex(index, m_pg);
+      typename ParityGame::vertex_descriptor v = vertex(index, m_pg);
 
       //m_pg[v].vertex_index = index;
       s >> m_pg[v].prio;
@@ -142,7 +144,7 @@ class pgsolver_parser
           parse_error(s, "Could not parse successor index.");
         while(succ >= boost::num_vertices(m_pg))
           boost::add_vertex(m_pg);
-        parity_game_t::vertex_descriptor u = boost::vertex(succ, m_pg);
+        typename ParityGame::vertex_descriptor u = boost::vertex(succ, m_pg);
         boost::add_edge(v, u, m_pg);
 
         s >> c;
@@ -183,13 +185,14 @@ class pgsolver_parser
 
 } // namespace detail
 
+template<typename ParityGame>
 inline void
-parse_pgsolver(parity_game_t& graph, std::istream& s, execution_timer& timer)
+parse_pgsolver(ParityGame& graph, std::istream& s, execution_timer& timer)
 {
   cpplog(cpplogging::verbose)
     << "Loading parity game." << std::endl;
   timer.start("load");
-  detail::pgsolver_parser parser(graph);
+  detail::pgsolver_parser<ParityGame> parser(graph);
   parser.load(s);
   timer.finish("load");
   cpplog(cpplogging::verbose)
@@ -197,11 +200,12 @@ parse_pgsolver(parity_game_t& graph, std::istream& s, execution_timer& timer)
         << boost::num_edges(graph) << " edges." << std::endl;
 }
 
+template<typename ParityGame>
 inline void
-print_pgsolver(parity_game_t& graph, std::ostream& os)
+print_pgsolver(ParityGame& graph, std::ostream& os)
 {
   cpplog(cpplogging::verbose) << "Printing parity game." << std::endl;
-  detail::pgsolver_printer p(graph);
+  detail::pgsolver_printer<ParityGame> p(graph);
   p.dump(os);
 }
 

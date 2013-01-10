@@ -16,23 +16,10 @@
 #include <utility>
 #include <set>
 #include "cpplogging/logger.h"
+#include "utilities.h"
 
 namespace detail
 {
-
-// for debugging
-template <typename T>
-std::string print(const std::multiset<T>& s)
-{
-  std::stringstream ss;
-  for(typename std::multiset<T>::const_iterator i = s.begin(); i != s.end(); ++ i)
-  {
-    if(i != s.begin()) ss << ", ";
-    ss << *i;
-  }
-  return ss.str();
-}
-
 // Combine the two steps into a single function
 // this allows for easier change to a manual stack with a while loop
 template <typename Graph, typename CopContainer>

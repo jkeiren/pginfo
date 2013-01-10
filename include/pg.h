@@ -52,6 +52,7 @@ struct pg_label_t
 };
 
 typedef boost::adjacency_list<boost::setS, boost::vecS, boost::bidirectionalS, pg_label_t > parity_game_t;
+typedef boost::adjacency_list<boost::setS, boost::vecS, boost::undirectedS, pg_label_t > undirected_parity_game_t; // for treewidth computations
 
 struct is_even_vtx
 {
