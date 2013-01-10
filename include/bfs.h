@@ -42,6 +42,61 @@ record_back_edges(size_t& n, BackEdgeMap& m, const DistanceMap& d)
   return back_edge_recorder<BackEdgeMap, DistanceMap>(n, m, d);
 }
 
+// Use the convention that changing the color of a vertex to gray
+// means adding to the queue, changing color to black is removing from the queue
+// the queue size at position k is the size of the queue once we finish
+// processing the k'th vertex.
+template<class Tag>
+struct queue_append_recorder: public boost::default_bfs_visitor
+{
+  size_t& cur_queue_size;
+  typedef Tag event_filter;
+
+  queue_append_recorder(size_t& cur_queue_size)
+    : cur_queue_size(cur_queue_size)
+  {}
+
+  template<typename Vertex, typename Graph>
+  inline void operator()(Vertex, Graph&)
+  {
+    ++cur_queue_size;
+  }
+};
+
+template <typename OutIter>
+struct queue_remove_recorder: public boost::default_bfs_visitor
+{
+  size_t& m_cur_queue_size;
+  OutIter m_queue_size_out;
+  typedef boost::on_finish_vertex event_filter;
+
+  queue_remove_recorder(size_t& cur_queue_size, OutIter queue_size_out)
+    : m_cur_queue_size(cur_queue_size),
+      m_queue_size_out(queue_size_out)
+  {}
+
+  template<typename Vertex, typename Graph>
+  inline void operator()(Vertex, Graph&)
+  {
+    --m_cur_queue_size;
+    *(m_queue_size_out)++ = m_cur_queue_size;
+  }
+};
+
+template<class Tag>
+inline queue_append_recorder<Tag>
+record_queue_append(size_t& cur_queue_size, Tag)
+{
+  return queue_append_recorder<Tag>(cur_queue_size);
+}
+
+template<typename QueueSizeMap>
+inline queue_remove_recorder<QueueSizeMap>
+record_queue_remove(size_t& cur_queue_size, QueueSizeMap queue_sizes)
+{
+  return queue_remove_recorder<QueueSizeMap>(cur_queue_size, queue_sizes);
+}
+
 } // namespace detail
 
 template<typename DistanceMap>
@@ -102,6 +157,22 @@ back_level_edges(const Graph& g, typename Graph::vertex_descriptor v = 0)
   typedef typename boost::graph_traits<Graph>::vertices_size_type vertex_size_t;
   std::map<vertex_size_t, vertex_size_t> m;
   return back_level_edges(g, v, m);
+}
+
+template<typename Graph>
+inline
+std::vector<typename boost::graph_traits<Graph>::vertices_size_type>
+bfs_queue_sizes(const Graph& g, typename Graph::vertex_descriptor v = 0)
+{
+  typedef typename boost::graph_traits<Graph>::vertices_size_type vertex_size_t;
+  vertex_size_t cur = 0;
+  std::vector<vertex_size_t> queue_size_map(boost::num_vertices(g), 0);
+  boost::breadth_first_search(g, v,
+      boost::visitor(boost::make_bfs_visitor(std::make_pair(
+          detail::record_queue_append(cur, boost::on_discover_vertex()),
+          detail::record_queue_remove(cur, &(queue_size_map[0]))
+      ))));
+  return queue_size_map;
 }
 
 #endif // BFS_INFO_H

@@ -17,7 +17,9 @@
 namespace detail
 {
 // Use the convention that changing the color of a vertex to gray
-// means pushing on the stack, changing color to black is popping from the stack
+// means pushing on the stack, changing color to black is popping from the stack.
+// The stack size at position k is the size of the stack once we finish
+// processing the k'th vertex.
 template<class Tag>
 struct stack_push_recorder: public boost::default_dfs_visitor
 {
