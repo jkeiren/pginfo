@@ -99,11 +99,12 @@ public:
           << YAML::Value << bfs_back_level_edges
        << YAML::EndMap;
 
+    std::vector<vertex_size_t> stack_sizes = dfs_stack_sizes(pg);
     out << YAML::Key << "DFS"
         << YAML::Value
         << YAML::BeginMap
         << YAML::Key << "Max stack"
-        << YAML::Value << dfs_max_stacksize(pg)
+        << YAML::Value << *std::max_element(stack_sizes.begin(), stack_sizes.end())
         << YAML::EndMap;
 
     out << YAML::Key << "Diameter"
