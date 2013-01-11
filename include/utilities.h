@@ -72,14 +72,35 @@ inline
 std::istream&
 open_input(std::string& input_filename, std::ifstream& ifs)
 {
+  cpplog(cpplogging::verbose) << "Reading input from ";
   if(input_filename.empty())
   {
+    cpplog(cpplogging::verbose) << "standard input" << std::endl;
     return std::cin;
   }
   else
   {
+    cpplog(cpplogging::verbose) << input_filename << std::endl;
     ifs.open(input_filename.c_str());
     return ifs;
+  }
+}
+
+inline
+std::ostream&
+open_output(std::string& output_filename, std::ofstream& ofs)
+{
+  cpplog(cpplogging::verbose) << "Writing output to ";
+  if(output_filename.empty())
+  {
+    cpplog(cpplogging::verbose) << "standard output" << std::endl;
+    return std::cout;
+  }
+  else
+  {
+    cpplog(cpplogging::verbose) << output_filename << std::endl;
+    ofs.open(output_filename.c_str());
+    return ofs;
   }
 }
 
