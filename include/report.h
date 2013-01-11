@@ -57,6 +57,7 @@ void report(const parity_game_t& pg, YAML::Emitter& out)
   vertex_size_t nlevels = bfs_levels(pg, 0, levels);
   std::map<vertex_size_t, vertex_size_t> bfs_back_level_edges;
   vertex_size_t nback_edges = back_level_edges(pg, 0, bfs_back_level_edges);
+  std::vector<vertex_size_t> queue_sizes = bfs_queue_sizes(pg);
   out << YAML::Key << "BFS"
       << YAML::Value
       << YAML::BeginMap
@@ -68,13 +69,18 @@ void report(const parity_game_t& pg, YAML::Emitter& out)
         << YAML::Value << nback_edges
         << YAML::Key << "Lengths of back level edges"
         << YAML::Value << bfs_back_level_edges
+        << YAML::Key << "Queue sizes"
+        << YAML::Value << queue_sizes
      << YAML::EndMap;
 
+  std::vector<vertex_size_t> stack_sizes = dfs_stack_sizes(pg);
   out << YAML::Key << "DFS"
       << YAML::Value
       << YAML::BeginMap
       << YAML::Key << "Max stack"
-      << YAML::Value << dfs_max_stacksize(pg)
+      << YAML::Value << *std::max_element(stack_sizes.begin(), stack_sizes.end())
+      << YAML::Key << "Stack sizes"
+      << YAML::Value << stack_sizes
       << YAML::EndMap;
 
   out << YAML::Key << "Diameter"
