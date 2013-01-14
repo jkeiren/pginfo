@@ -16,11 +16,12 @@
 #include <limits>
 
 template<typename Graph>
+inline
 typename boost::graph_traits<Graph>::vertices_size_type
 kneighbourhood(typename Graph::vertex_descriptor v, const Graph& g, const size_t k)
 {
   typedef typename boost::graph_traits<Graph>::vertices_size_type vertex_size_t;
-  std::vector<vertex_size_t> d(num_vertices(g));
+  std::vector<vertex_size_t> d(boost::num_vertices(g));
   boost::breadth_first_search(g, v,
           boost::visitor(boost::make_bfs_visitor(boost::record_distances(&d[0], boost::on_tree_edge()))
       ));
@@ -28,6 +29,7 @@ kneighbourhood(typename Graph::vertex_descriptor v, const Graph& g, const size_t
 }
 
 template<typename Graph>
+inline
 typename boost::graph_traits<Graph>::vertices_size_type
 neighbourhood(typename Graph::vertex_descriptor v, const Graph& g)
 {
@@ -35,6 +37,7 @@ neighbourhood(typename Graph::vertex_descriptor v, const Graph& g)
 }
 
 template<typename Graph>
+inline
 double avg_kneighbourhood(Graph& g, const size_t k)
 {
   typename boost::graph_traits<Graph>::vertices_size_type sum = 0;
@@ -47,6 +50,7 @@ double avg_kneighbourhood(Graph& g, const size_t k)
 }
 
 template<typename Graph>
+inline
 typename boost::graph_traits<Graph>::vertices_size_type
 max_kneighbourhood(Graph& g, const size_t k)
 {
@@ -60,6 +64,7 @@ max_kneighbourhood(Graph& g, const size_t k)
 }
 
 template<typename Graph>
+inline
 typename boost::graph_traits<Graph>::vertices_size_type
 min_kneighbourhood(Graph& g, const size_t k)
 {

@@ -18,7 +18,7 @@
 namespace detail
 {
 template<typename T>
-void update_girth(size_t& girth, ptrdiff_t x)
+void update_girth(size_t& /*girth*/, ptrdiff_t /*x*/)
 {
   // skip
 }

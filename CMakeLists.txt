@@ -4,7 +4,7 @@ project (pginfo)
 # Include scripts
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/scripts")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -Wall -Wextra")
 set(CMAKE_CXX_FLAGS_ANALYSIS "${CMAKE_CXX_FLAGS} --analyse")
 
 # Include external libraries
@@ -35,10 +35,6 @@ include_directories(
 
 add_executable (pginfo
   src/pginfo.cpp
-)
-
-add_executable (example
-  src/example.cpp
 )
 
 target_link_libraries (pginfo ${YAMLCPP_LIBRARY} cppcli cpplogging)

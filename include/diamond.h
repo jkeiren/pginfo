@@ -51,7 +51,10 @@ size_t diamond_count(const Graph& g)
       aj = ai;
       ++aj;
       if(aj == aend)
+      {
         cpplog(cpplogging::debug) << "    w = v; skipping" << std::endl;
+      }
+
       for(; aj != aend; ++aj)
       {
         typename Graph::vertex_descriptor w = *aj;
