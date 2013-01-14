@@ -124,6 +124,8 @@ greedy_degree(UndirectedGraph g)
 
 namespace detail
 {
+
+
 template <typename UndirectedGraph>
 inline
 void contract_edge(typename boost::graph_traits<UndirectedGraph>::vertex_descriptor u,
@@ -140,10 +142,24 @@ void contract_edge(typename boost::graph_traits<UndirectedGraph>::vertex_descrip
   typename boost::graph_traits<UndirectedGraph>::adjacency_iterator ai, aend;
   for (boost::tie(ai, aend) = boost::adjacent_vertices(v, g); ai != aend; ++ai)
   {
-    boost::add_edge(u, *ai, g);
+    if(*ai != v)
+      boost::add_edge(u, *ai, g);
+    boost::remove_edge(v, *ai, g);
   }
 
-  boost::clear_vertex(v, g);
+  // clear_vertex is buggy, and does not correctly remove all edges, hence
+  // we manually remove the edges above.
+  // boost::clear_vertex(v, g);
+
+#ifndef NDEBUG
+  typename boost::graph_traits<UndirectedGraph>::edge_iterator i, end;
+  for (boost::tie(i, end) = boost::edges(g); i != end; ++i)
+  {
+    assert(boost::source(*i, g) != v);
+    assert(boost::target(*i, g) != v);
+  }
+#endif
+
   boost::remove_vertex(v, g);
 }
 
@@ -204,6 +220,8 @@ minor_min_width_destructive(UndirectedGraph& g)
 
     contract_edge(u, v, g);
   }
+
+  return lowerbound;
 }
 } // namespace detail
 
