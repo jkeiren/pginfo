@@ -12,7 +12,6 @@
 #include "cases.h"
 
 #include "degree.h"
-//#include "alternation_depth.h"
 #include "bfs.h"
 #include "dfs.h"
 #include "diameter.h"
@@ -22,6 +21,7 @@
 #include "scc.h"
 #include "entanglement.h"
 #include "treewidth.h"
+#include "alternation_depth.h"
 
 template<typename ParityGame>
 void load_graph(ParityGame& pg, const std::string& s)
@@ -106,22 +106,6 @@ TEST(GameStats, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR)
   EXPECT_EQ(1,num_even_vertices(pg));
   EXPECT_EQ(131,num_odd_vertices(pg));
 }
-
-/*
-TEST(AlternationDepth, ABP_NODEADLOCK)
-{
-  parity_game_t pg;
-  load_graph(pg, ABP_NODEADLOCK);
-  EXPECT_EQ(graph::alternation_depth<parity_game_t>(pg).get_alternation_depth(),0);
-}
-
-TEST(AlternationDepth, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR)
-{
-  parity_game_t pg;
-  load_graph(pg, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR);
-  EXPECT_EQ(graph::alternation_depth<parity_game_t>(pg).get_alternation_depth(),2);
-}
-*/
 
 TEST(BFS, BUFFER_NODEADLOCK)
 {
@@ -408,7 +392,22 @@ TEST(Treewidth, ABP_NODEADLOCK)
   load_graph(pg, ABP_NODEADLOCK);
   EXPECT_EQ(2, minor_min_width(pg));
   EXPECT_EQ(2, greedy_degree(pg));
-  //EXPECT_EQ(3, treewidth(pg));
+  //EXPECT_EQ(2, treewidth(pg));
+}
+
+
+TEST(AlternationDepth, ABP_NODEADLOCK)
+{
+  parity_game_t pg;
+  load_graph(pg, ABP_NODEADLOCK);
+  EXPECT_EQ(1, alternation_depth(pg));
+}
+
+TEST(AlternationDepth, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR)
+{
+  parity_game_t pg;
+  load_graph(pg, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR);
+  EXPECT_EQ(2,alternation_depth(pg));
 }
 
 int main(int argc, char **argv) {
