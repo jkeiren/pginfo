@@ -20,6 +20,7 @@
 #include "girth.h"
 #include "neighbourhood.h"
 #include "scc.h"
+#include "alternation_depth.h"
 
 inline
 void report(const parity_game_t& pg, YAML::Emitter& out)
@@ -116,6 +117,9 @@ void report(const parity_game_t& pg, YAML::Emitter& out)
       << YAML::Key << "Terminal SCCs" << YAML::Value << vertices_out_degree_n(quotient, 0)
       << YAML::Key << "Quotient height" << YAML::Value << bfs_levels(quotient)
       << YAML::EndMap;
+
+  out << YAML::Key << "Alternation depth [CKS93]" << YAML::Value << alternation_depth(pg);
+  out << YAML::Key << "Alternation depth (priority ordering)" << YAML::Value << alternation_depth_priority_sorting(pg);
 
   out << YAML::EndMap;
 }

@@ -395,12 +395,29 @@ TEST(Treewidth, ABP_NODEADLOCK)
   //EXPECT_EQ(2, treewidth(pg));
 }
 
+TEST(Treewidth, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR)
+{
+  undirected_parity_game_t pg;
+  load_graph(pg, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR);
+  EXPECT_EQ(2, minor_min_width(pg));
+  EXPECT_EQ(2, greedy_degree(pg));
+  //EXPECT_EQ(2, treewidth(pg));
+}
+
+TEST(AlternationDepth, BUFFER_NODEADLOCK)
+{
+  parity_game_t pg;
+  load_graph(pg, BUFFER_NODEADLOCK);
+  EXPECT_EQ(1, alternation_depth(pg));
+  EXPECT_EQ(1, alternation_depth_priority_sorting(pg));
+}
 
 TEST(AlternationDepth, ABP_NODEADLOCK)
 {
   parity_game_t pg;
   load_graph(pg, ABP_NODEADLOCK);
   EXPECT_EQ(1, alternation_depth(pg));
+  EXPECT_EQ(1, alternation_depth_priority_sorting(pg));
 }
 
 TEST(AlternationDepth, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR)
@@ -408,6 +425,7 @@ TEST(AlternationDepth, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR)
   parity_game_t pg;
   load_graph(pg, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR);
   EXPECT_EQ(2,alternation_depth(pg));
+  EXPECT_EQ(2,alternation_depth_priority_sorting(pg));
 }
 
 int main(int argc, char **argv) {

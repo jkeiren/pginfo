@@ -24,7 +24,7 @@
 
 template<typename ComponentMap, typename NestingMap>
 inline
-typename boost::graph_traits<parity_game_t>::vertices_size_type
+void
 nesting_depth(const parity_game_t& g, ComponentMap cm, NestingMap nm)
 {
   typename boost::graph_traits<parity_game_t>::vertex_iterator i,end;
@@ -45,13 +45,49 @@ nesting_depth(const parity_game_t& g, ComponentMap cm, NestingMap nm)
   }
 }
 
+template<typename ComponentMap, typename NestingMap>
+inline
+void
+nesting_depth_priority_sorting(const parity_game_t& g, ComponentMap cm, NestingMap nm)
+{
+  typedef typename boost::graph_traits<parity_game_t>::vertices_size_type vertex_size_t;
+  typedef typename boost::graph_traits<parity_game_t>::vertex_descriptor vertex_t;
+
+  std::vector<vertex_t> order;
+  order.reserve(boost::num_vertices(g));
+
+  typename boost::graph_traits<parity_game_t>::vertex_iterator i,end;
+  for(boost::tie(i, end) = boost::vertices(g); i != end; ++i)
+    order.push_back(*i);
+  assert(order.size() == boost::num_vertices(g));
+
+  std::sort(order.begin(), order.end(), [&g](const vertex_t& x, const vertex_t& y){return g[boost::vertex(x, g)].prio < g[boost::vertex(y, g)].prio;});
+
+  for(auto i: order)
+  {
+    nm[i] = 1;
+    typename boost::graph_traits<parity_game_t>::in_edge_iterator ai,aend;
+    for(boost::tie(ai, aend) = boost::in_edges(i,g); ai != aend; ++ai)
+    {
+      if(cm[boost::source(*ai,g)] != cm[i] || g[boost::source(*ai,g)].prio >= g[i].prio)
+        continue;
+
+      if((g[i].prio % 2) == (g[boost::source(*ai,g)].prio % 2))
+        nm[i] = std::max(nm[i], nm[boost::source(*ai,g)]);
+      else
+        nm[i] = std::max(nm[i], 1+nm[boost::source(*ai,g)]);
+    }
+  }
+}
+
+
 inline
 typename boost::graph_traits<parity_game_t>::vertices_size_type
 alternation_depth(const parity_game_t& g)
 {
   typedef typename boost::graph_traits<parity_game_t>::vertices_size_type vertex_size_t;
   std::vector<vertex_size_t> components (boost::num_vertices(g), 0);
-  vertex_size_t ncomponents = boost::strong_components(g, &components[0]);
+  boost::strong_components(g, &components[0]);
 
   std::vector<vertex_size_t> nesting_depths(boost::num_vertices(g), 1);
   nesting_depth(g, components, &nesting_depths[0]);
@@ -59,5 +95,18 @@ alternation_depth(const parity_game_t& g)
   return *std::max_element(nesting_depths.begin(), nesting_depths.end());
 }
 
+inline
+typename boost::graph_traits<parity_game_t>::vertices_size_type
+alternation_depth_priority_sorting(const parity_game_t& g)
+{
+  typedef typename boost::graph_traits<parity_game_t>::vertices_size_type vertex_size_t;
+  std::vector<vertex_size_t> components (boost::num_vertices(g), 0);
+  boost::strong_components(g, &components[0]);
+
+  std::vector<vertex_size_t> nesting_depths(boost::num_vertices(g), 1);
+  nesting_depth_priority_sorting(g, components, &nesting_depths[0]);
+
+  return *std::max_element(nesting_depths.begin(), nesting_depths.end());
+}
 
 #endif // ALTERNATION_DEPTH_H
