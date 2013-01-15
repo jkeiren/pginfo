@@ -18,6 +18,7 @@
 template <typename Graph>
 size_t diamond_count(const Graph& g)
 {
+  cpplog(cpplogging::verbose) << "Counting number of 2-diamonds in the graph" << std::endl;
   size_t result = 0;
 
   typename boost::graph_traits< Graph >::vertex_iterator i, end;

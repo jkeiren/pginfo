@@ -2,6 +2,8 @@
 #define BFS_INFO_H
 
 #include <boost/graph/breadth_first_search.hpp>
+
+#include "cpplogging/logger.h"
 #include "utilities.h"
 
 namespace detail
@@ -103,6 +105,7 @@ template<typename DistanceMap>
 inline
 std::map<size_t, size_t> bfs_nodes_per_level(const DistanceMap& d)
 {
+  cpplog(cpplogging::verbose) << "Determining number of BFS nodes per level" << std::endl;
   std::map<size_t, size_t> l;
   for(auto i: d)
     increment(l, i);
@@ -127,6 +130,7 @@ inline
 typename boost::graph_traits<Graph>::vertices_size_type
 bfs_levels(const Graph& g, typename Graph::vertex_descriptor v = 0)
 {
+  cpplog(cpplogging::debug) << "Determining number of bfs levels" << std::endl;
   typedef typename boost::graph_traits<Graph>::vertices_size_type vertex_size_t;
   std::vector<vertex_size_t> d(boost::num_vertices(g), 0);
   return bfs_levels(g, v, d);
@@ -154,6 +158,7 @@ inline
 typename boost::graph_traits<Graph>::vertices_size_type
 back_level_edges(const Graph& g, typename Graph::vertex_descriptor v = 0)
 {
+  cpplog(cpplogging::verbose) << "Recording back-level edges" << std::endl;
   typedef typename boost::graph_traits<Graph>::vertices_size_type vertex_size_t;
   std::map<vertex_size_t, vertex_size_t> m;
   return back_level_edges(g, v, m);
@@ -164,6 +169,7 @@ inline
 std::vector<typename boost::graph_traits<Graph>::vertices_size_type>
 bfs_queue_sizes(const Graph& g, typename Graph::vertex_descriptor v = 0)
 {
+  cpplog(cpplogging::verbose) << "Recording BFS queue sizes" << std::endl;
   typedef typename boost::graph_traits<Graph>::vertices_size_type vertex_size_t;
   vertex_size_t cur = 0;
   std::vector<vertex_size_t> queue_size_map(boost::num_vertices(g), 0);

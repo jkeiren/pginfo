@@ -13,6 +13,7 @@
 #define SCC_INFO_H
 
 #include <boost/graph/strong_components.hpp>
+#include "cpplogging/logger.h"
 #include "bfs.h"
 #include "degree.h"
 

@@ -12,6 +12,7 @@
 #ifndef DIAMETER_H
 #define DIAMETER_H
 
+#include "cpplogging/logger.h"
 #include "pg.h"
 #include "bfs.h"
 
@@ -20,6 +21,7 @@ inline
 typename boost::graph_traits<Graph>::vertices_size_type
 diameter(const Graph& g)
 {
+  cpplog(cpplogging::verbose) << "Computing diameter" << std::endl;
   typename boost::graph_traits<Graph>::vertices_size_type result = 0;
   typename boost::graph_traits<Graph>::vertex_iterator i, end;
   for (boost::tie(i, end) = vertices(g); i != end; ++i)

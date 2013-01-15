@@ -13,6 +13,7 @@
 #define DFS_INFO_H
 
 #include <boost/graph/depth_first_search.hpp>
+#include "cpplogging/logger.h"
 
 namespace detail
 {

@@ -21,12 +21,14 @@
 
 #include <boost/graph/strong_components.hpp>
 #include <boost/graph/topological_sort.hpp>
+#include "cpplogging/logger.h"
 
 template<typename ComponentMap, typename NestingMap>
 inline
 void
 nesting_depth(const parity_game_t& g, ComponentMap cm, NestingMap nm)
 {
+  cpplog(cpplogging::debug) << "Computing nesting depth" << std::endl;
   typename boost::graph_traits<parity_game_t>::vertex_iterator i,end;
   for(boost::tie(i, end) = boost::vertices(g); i != end; ++i)
   {
@@ -50,6 +52,7 @@ inline
 void
 nesting_depth_priority_sorting(const parity_game_t& g, ComponentMap cm, NestingMap nm)
 {
+  cpplog(cpplogging::debug) << "Computing nesting depth using priority sorting" << std::endl;
   typedef typename boost::graph_traits<parity_game_t>::vertices_size_type vertex_size_t;
   typedef typename boost::graph_traits<parity_game_t>::vertex_descriptor vertex_t;
 
@@ -85,6 +88,7 @@ inline
 typename boost::graph_traits<parity_game_t>::vertices_size_type
 alternation_depth(const parity_game_t& g)
 {
+  cpplog(cpplogging::verbose) << "Computing alternation depth" << std::endl;
   typedef typename boost::graph_traits<parity_game_t>::vertices_size_type vertex_size_t;
   std::vector<vertex_size_t> components (boost::num_vertices(g), 0);
   boost::strong_components(g, &components[0]);
@@ -99,6 +103,7 @@ inline
 typename boost::graph_traits<parity_game_t>::vertices_size_type
 alternation_depth_priority_sorting(const parity_game_t& g)
 {
+  cpplog(cpplogging::verbose) << "Computing alternation depth with priority sorting" << std::endl;
   typedef typename boost::graph_traits<parity_game_t>::vertices_size_type vertex_size_t;
   std::vector<vertex_size_t> components (boost::num_vertices(g), 0);
   boost::strong_components(g, &components[0]);

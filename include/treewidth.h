@@ -14,6 +14,7 @@
 
 #include <limits>
 #include <boost/graph/copy.hpp>
+#include "cpplogging/logger.h"
 
 #include "neighbourhood.h"
 

@@ -14,6 +14,7 @@
 
 #include <limits>
 #include <boost/graph/breadth_first_search.hpp>
+#include "cpplogging/logger.h"
 
 namespace detail
 {
@@ -66,6 +67,7 @@ record_girth(const DistanceMap& d, size_t& girth, Tag)
 template <typename Graph>
 size_t girth(const Graph& g)
 {
+  cpplog(cpplogging::verbose) << "Computing girth" << std::endl;
   typedef typename boost::graph_traits<Graph>::vertices_size_type vertex_size_t;
   typename boost::graph_traits<Graph>::vertex_iterator i, end;
 

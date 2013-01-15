@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
+#include "cpplogging/logger.h"
 
 /**
  * @brief Enumerated constants to indicate parity game players.

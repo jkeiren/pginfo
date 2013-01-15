@@ -21,6 +21,7 @@
 #include "neighbourhood.h"
 #include "scc.h"
 #include "alternation_depth.h"
+#include "treewidth.h"
 
 inline
 void report(const parity_game_t& pg, YAML::Emitter& out)
@@ -85,27 +86,37 @@ void report(const parity_game_t& pg, YAML::Emitter& out)
       << YAML::EndMap;
 
   out << YAML::Key << "Diameter"
-      << YAML::Value << diameter(pg);
+      << YAML::Value << ((boost::num_vertices(pg)>1000)?"unknown":std::to_string(diameter(pg)));
   out << YAML::Key << "Girth"
-      << YAML::Value << girth(pg);
+      << YAML::Value << ((boost::num_vertices(pg)>1000)?"unknown":std::to_string(girth(pg)));;
   out << YAML::Key << "Diamonds"
       << YAML::Value << diamond_count(pg);
 
+  const size_t N = 3;
+  std::vector<neighbourhood_result> neighbourhoods = accumulated_upto_kneighbourhood(pg, N);
   out << YAML::Key << "Neighbourhood"
       << YAML::Value
       << YAML::BeginMap;
-  for(size_t i = 1; i <= 5; ++i)
+  for(size_t i = 1; i <= N; ++i)
   {
     out << YAML::Key << i
         << YAML::Value
         << YAML::BeginMap
-        << YAML::Key << "min" << YAML::Value << min_kneighbourhood(pg, i)
-        << YAML::Key << "max" << YAML::Value << max_kneighbourhood(pg, i)
-        << YAML::Key << "avg" << YAML::Value << avg_kneighbourhood(pg, i)
+        << YAML::Key << "min" << YAML::Value << neighbourhoods[i].min
+        << YAML::Key << "max" << YAML::Value << neighbourhoods[i].max
+        << YAML::Key << "avg" << YAML::Value << static_cast<double>(neighbourhoods[i].min)/static_cast<double>(boost::num_vertices(pg))
         << YAML::EndMap;
   }
   out << YAML::EndMap;
 
+  out << YAML::Key << "Treewidth"
+      << YAML::Value
+      << YAML::BeginMap
+         << YAML::Key << "Lower bound" << YAML::Value << minor_min_width(pg)
+         << YAML::Key << "Upper bound" << YAML::Value << greedy_degree(pg)
+      << YAML::EndMap;
+
+  cpplog(cpplogging::verbose) << "Computing SCCs" << std::endl;
   std::vector<vertex_size_t> sccs (boost::num_vertices(pg), 0);
   vertex_size_t nsccs = boost::strong_components(pg, &sccs[0]);
   parity_game_t quotient = quotient_graph(pg, sccs, nsccs);
