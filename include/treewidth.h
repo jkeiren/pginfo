@@ -26,11 +26,18 @@
  *  freely talk about tree-width and tree decompositions of directed graphs."
  */
 
-template<typename DirectedGraph, typename MutableUndirectedGraph>
-inline
-void undirect_graph(const DirectedGraph& g, MutableUndirectedGraph& ug)
+template <typename Graph>
+void remove_selfloops(Graph& g)
 {
-  copy_graph(g, ug);
+  // add all edges of v to u
+  typename boost::graph_traits<Graph>::vertex_iterator i, end;
+  for(boost::tie(i, end) = boost::vertices(g); i != end; ++i)
+  {
+    if(boost::edge(*i, *i, g).second)
+    {
+      boost::remove_edge(*i, *i, g);
+    }
+  }
 }
 
 
@@ -55,23 +62,36 @@ void eliminate_vertex(typename boost::graph_traits<UndirectedGraph>::vertex_desc
                    UndirectedGraph& g)
 {
   // add all edges of v to u
-  typename boost::graph_traits<UndirectedGraph>::adjacency_iterator ai, aj, aend, aend_;
+  typename boost::graph_traits<UndirectedGraph>::adjacency_iterator ai, aj, aend;
 
   for (boost::tie(ai, aend) = boost::adjacent_vertices(v, g); ai != aend; ++ai)
   {
-    for (boost::tie(aj, aend_) = boost::adjacent_vertices(v, g); aj != aend_; ++aj)
+    for (aj = ai; aj != aend; ++aj)
     {
-      if(*ai != v && *aj != v && *ai != *aj)
+      if(/* *ai != v && *aj != v && */ *ai != *aj)
       {
         boost::add_edge(*ai, *aj, g); // adds *ai -> *aj and vice versa, due to undirectedness.
       }
     }
+    // remove the edge from v to *ai (O(E/V) operation)
+    boost::remove_edge(v, *ai, g);
   }
 
-  boost::clear_vertex(v,g);
-  boost::remove_vertex(v,g);
+  /* We want to remove all outgoing edges from the vertex, and then remove
+   * the vertex. Since especially removing the vertex is an inefficient operation,
+   * we refrain from doing so, and we just assume a vertex with no outgoing
+   * edges is irrelevant.
+   */
+  //boost::clear_vertex(v,g);
+  //boost::remove_vertex(v,g);
 }
 
+/* TODO: We should use a priority queue here for efficiently keeping the
+ * vertices with the least number of outgoing edges. Problem here is that the
+ * algorithm requires updates to arbitrary vertices, meaning we have to resort
+ * to an extra level of indirection if we want to prevent linear-time searches.
+ * Could maybe be implemented using the Fibonacci heap in boost::heap.
+ */
 template <typename UndirectedGraph>
 inline
 typename boost::graph_traits<UndirectedGraph>::vertices_size_type
@@ -80,17 +100,19 @@ greedy_degree_destructive(UndirectedGraph& g)
   typedef typename boost::graph_traits<UndirectedGraph>::vertices_size_type vertex_size_t;
   typedef typename boost::graph_traits<UndirectedGraph>::vertex_descriptor vertex_t;
 
+  remove_selfloops(g);
+
   vertex_size_t upperbound = std::numeric_limits<vertex_size_t>::min();
 
-  while(boost::num_vertices(g) > 0)
+  while(boost::num_edges(g) > 0)
   {
     vertex_size_t min = boost::num_vertices(g);
     vertex_t u;
     typename boost::graph_traits<UndirectedGraph>::vertex_iterator i, end;
     for (boost::tie(i, end) = vertices(g); i != end; ++i)
     {
-      vertex_size_t n = neighbourhood(*i, g);
-      if(n < min)// && n > 0)
+      vertex_size_t n = boost::out_degree(*i, g);
+      if(n < min && n > 0)
       {
         u = *i;
         min = n;
@@ -109,7 +131,9 @@ inline
 typename boost::graph_traits<UndirectedGraph>::vertices_size_type
 greedy_degree(UndirectedGraph g)
 {
-  return detail::greedy_degree_destructive(g);
+  UndirectedGraph destructable_g;
+  boost::copy_graph(g, destructable_g);
+  return detail::greedy_degree_destructive(destructable_g);
 }
 
 /* Known algorithms for computing lowerbound on treewidth:
@@ -134,7 +158,7 @@ void contract_edge(typename boost::graph_traits<UndirectedGraph>::vertex_descrip
                    UndirectedGraph& g)
 {
   // ensure u is the vertex with largest number of neighbours
-  if(neighbourhood(u, g) < neighbourhood(v, g))
+  if(boost::out_degree(u, g) < boost::out_degree(v, g))
     std::swap(u,v);
 
   boost::remove_edge(u, v, g);
@@ -143,7 +167,8 @@ void contract_edge(typename boost::graph_traits<UndirectedGraph>::vertex_descrip
   typename boost::graph_traits<UndirectedGraph>::adjacency_iterator ai, aend;
   for (boost::tie(ai, aend) = boost::adjacent_vertices(v, g); ai != aend; ++ai)
   {
-    if(*ai != v)
+    assert(*ai != v);
+    if(*ai != u)
       boost::add_edge(u, *ai, g);
     boost::remove_edge(v, *ai, g);
   }
@@ -183,8 +208,10 @@ minor_min_width_destructive(UndirectedGraph& g)
   typedef typename boost::graph_traits<UndirectedGraph>::vertices_size_type vertex_size_t;
   typedef typename boost::graph_traits<UndirectedGraph>::vertex_descriptor vertex_t;
 
+  remove_selfloops(g);
+
   vertex_size_t lowerbound = 0;
-  while(boost::num_vertices(g) > 0)
+  while(boost::num_edges(g) > 0)
   {
     // find vertex with minimum degree
     vertex_size_t min = std::numeric_limits<vertex_size_t>::max();
@@ -192,7 +219,7 @@ minor_min_width_destructive(UndirectedGraph& g)
     vertex_t u;
     for (boost::tie(i, end) = vertices(g); i != end; ++i)
     {
-      vertex_size_t n = neighbourhood(*i, g);
+      vertex_size_t n = boost::out_degree(*i, g);
       if(n < min && n > 0)
       {
         u = *i;
@@ -211,8 +238,8 @@ minor_min_width_destructive(UndirectedGraph& g)
     typename boost::graph_traits<UndirectedGraph>::adjacency_iterator ai, aend;
     for (boost::tie(ai, aend) = boost::adjacent_vertices(u, g); ai != aend; ++ai)
     {
-      vertex_size_t n = neighbourhood(*ai, g);
-      if(n < min)
+      vertex_size_t n = boost::out_degree(*ai, g);
+      if(n < min && n > 0)
       {
         min = n;
         v = *ai;
@@ -226,12 +253,14 @@ minor_min_width_destructive(UndirectedGraph& g)
 }
 } // namespace detail
 
-template <typename DirectedGraph>
+template <typename UndirectedGraph>
 inline
-typename boost::graph_traits<DirectedGraph>::vertices_size_type
-minor_min_width(DirectedGraph g)
+typename boost::graph_traits<UndirectedGraph>::vertices_size_type
+minor_min_width(const UndirectedGraph& g)
 {
-  return detail::minor_min_width_destructive(g);
+  UndirectedGraph destructable_g;
+  boost::copy_graph(g, destructable_g);
+  return detail::minor_min_width_destructive(destructable_g);
 }
 
 /* Exact algorithms known for computing treewidth:
