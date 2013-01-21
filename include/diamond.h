@@ -14,12 +14,23 @@
 
 #include "cpplogging/logger.h"
 
+struct diamond_count_t
+{
+  size_t all;
+  size_t even;
+  size_t odd;
+
+  diamond_count_t()
+    : all(0), even(0), odd(0)
+  {}
+};
+
 // Count the number of 2-diamonds in the graph.
 template <typename Graph>
-size_t diamond_count(const Graph& g)
+diamond_count_t diamond_count(const Graph& g)
 {
   cpplog(cpplogging::verbose) << "Counting number of 2-diamonds in the graph" << std::endl;
-  size_t result = 0;
+  diamond_count_t result;
 
   typename boost::graph_traits< Graph >::vertex_iterator i, end;
   typename boost::graph_traits< Graph >::adjacency_iterator ai,aj,aend;
@@ -73,11 +84,20 @@ size_t diamond_count(const Graph& g)
           else
           {
             cpplog(cpplogging::debug) << "      Diamond completed by " << *wi << std::endl;
-            ++result; ++vi; ++wi;
+            ++result.all;
+            if(g[u].player == even && g[v].player == even && g[w].player == even)
+            {
+              ++result.even;
+            }
+            else if(g[u].player == odd && g[v].player == odd && g[w].player == odd)
+            {
+              ++result.odd;
+            }
+            ++vi; ++wi;
           }
         }
       }
-      cpplog(cpplogging::debug) << "      " << result << " diamonds after this iteration" << std::endl;
+      cpplog(cpplogging::debug) << "      " << result.all << " diamonds after this iteration" << std::endl;
     }
 
   }

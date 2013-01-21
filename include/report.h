@@ -88,9 +88,19 @@ void report(const parity_game_t& pg, YAML::Emitter& out, const size_t max_vertic
   out << YAML::Key << "Diameter"
       << YAML::Value << ((boost::num_vertices(pg)>max_vertices_for_expensive_checks)?"unknown":std::to_string(diameter(pg)));
   out << YAML::Key << "Girth"
-      << YAML::Value << ((boost::num_vertices(pg)>max_vertices_for_expensive_checks)?"unknown":std::to_string(girth(pg)));;
+      << YAML::Value << ((boost::num_vertices(pg)>max_vertices_for_expensive_checks)?"unknown":std::to_string(girth(pg)));
+
+  diamond_count_t diamonds = diamond_count(pg);
   out << YAML::Key << "Diamonds"
-      << YAML::Value << diamond_count(pg);
+      << YAML::Value
+      << YAML::BeginMap
+      << YAML::Key << "Total"
+      << YAML::Value << diamonds.all
+      << YAML::Key << "Even"
+      << YAML::Value << diamonds.even
+      << YAML::Key << "Odd"
+      << YAML::Value << diamonds.odd
+      << YAML::EndMap;
 
   std::vector<neighbourhood_result> neighbourhoods = accumulated_upto_kneighbourhood(pg, neighbourhood_upto);
   out << YAML::Key << "Neighbourhood"

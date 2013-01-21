@@ -182,14 +182,20 @@ TEST(Diamond, BUFFER_NODEADLOCK)
 {
   parity_game_t pg;
   load_graph(pg, BUFFER_NODEADLOCK);
-  EXPECT_EQ(1, diamond_count(pg));
+  diamond_count_t diamonds = diamond_count(pg);
+  EXPECT_EQ(1, diamonds.all);
+  EXPECT_EQ(0,diamonds.even);
+  EXPECT_EQ(1,diamonds.odd);
 }
 
 TEST(Diamond, ABP_NODEADLOCK)
 {
   parity_game_t pg;
   load_graph(pg, ABP_NODEADLOCK);
-  EXPECT_EQ(8,diamond_count(pg));
+  diamond_count_t diamonds = diamond_count(pg);
+  EXPECT_EQ(8,diamonds.all);
+  EXPECT_EQ(0,diamonds.even);
+  EXPECT_EQ(8,diamonds.odd);
   /* Manually verified result, diamonds are:
    * 15 - 19,20 - 2
    * 17 - 22,23 - 3
@@ -206,7 +212,10 @@ TEST(Diamond, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR)
 {
   parity_game_t pg;
   load_graph(pg, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR);
-  EXPECT_EQ(8,diamond_count(pg));
+  diamond_count_t diamonds = diamond_count(pg);
+  EXPECT_EQ(8,diamonds.all);
+  EXPECT_EQ(0,diamonds.even);
+  EXPECT_EQ(8,diamonds.odd);
   /* Manually verified result, diamonds are:
    * 21 - 25,26 - 2
    * 23 - 28,29 - 3
