@@ -24,7 +24,7 @@
 #include "treewidth.h"
 
 inline
-void report(const parity_game_t& pg, YAML::Emitter& out)
+void report(const parity_game_t& pg, YAML::Emitter& out, const size_t max_vertices_for_expensive_checks = 1000, const size_t neighbourhood_upto = 3)
 {
   typedef typename boost::graph_traits<parity_game_t>::vertices_size_type vertex_size_t;
 
@@ -86,18 +86,17 @@ void report(const parity_game_t& pg, YAML::Emitter& out)
       << YAML::EndMap;
 
   out << YAML::Key << "Diameter"
-      << YAML::Value << ((boost::num_vertices(pg)>1000)?"unknown":std::to_string(diameter(pg)));
+      << YAML::Value << ((boost::num_vertices(pg)>max_vertices_for_expensive_checks)?"unknown":std::to_string(diameter(pg)));
   out << YAML::Key << "Girth"
-      << YAML::Value << ((boost::num_vertices(pg)>1000)?"unknown":std::to_string(girth(pg)));;
+      << YAML::Value << ((boost::num_vertices(pg)>max_vertices_for_expensive_checks)?"unknown":std::to_string(girth(pg)));;
   out << YAML::Key << "Diamonds"
       << YAML::Value << diamond_count(pg);
 
-  const size_t N = 3;
-  std::vector<neighbourhood_result> neighbourhoods = accumulated_upto_kneighbourhood(pg, N);
+  std::vector<neighbourhood_result> neighbourhoods = accumulated_upto_kneighbourhood(pg, neighbourhood_upto);
   out << YAML::Key << "Neighbourhood"
       << YAML::Value
       << YAML::BeginMap;
-  for(size_t i = 1; i <= N; ++i)
+  for(size_t i = 1; i <= neighbourhood_upto; ++i)
   {
     out << YAML::Key << i
         << YAML::Value

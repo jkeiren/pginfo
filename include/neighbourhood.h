@@ -72,7 +72,9 @@ upto_kneighbourhood(typename Graph::vertex_descriptor v, const Graph& g, const s
 {
   typedef typename boost::graph_traits<Graph>::vertices_size_type vertex_size_t;
   std::vector<vertex_size_t> result(k+1,0);
+  if(k == 0) return result;
   std::vector<vertex_size_t> d(boost::num_vertices(g), std::numeric_limits<vertex_size_t>::max());
+  d[v] = 0;
   try
   {
     boost::breadth_first_search(g, v,
@@ -127,7 +129,7 @@ accumulated_upto_kneighbourhood(Graph& g, const size_t k)
   {
     if((*i % 1000) == 0)
     {
-      cpplog(cpplogging::verbose) << "Processed " << *i << " vertices" << std::endl;
+      cpplog(cpplogging::status) << "Processed " << *i << " vertices" << std::endl;
     }
     std::vector<typename boost::graph_traits<Graph>::vertices_size_type> tmp = upto_kneighbourhood(*i, g, k);
     for(size_t i = 0; i <= k; ++i)
@@ -137,6 +139,7 @@ accumulated_upto_kneighbourhood(Graph& g, const size_t k)
       result[i].max = std::max(result[i].max, tmp[i]);
     }
   }
+  cpplog(cpplogging::verbose) << "done" << std::endl;
   return result;
 }
 

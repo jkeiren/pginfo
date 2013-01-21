@@ -19,7 +19,7 @@ include_directories(
   ${YAMLCPP_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}/external/logging/include
   ${CMAKE_SOURCE_DIR}/external/commandline/include
-  ${CMAKE_SOURCE_DIR}/googletest/include
+  ${CMAKE_SOURCE_DIR}/external/googletest/include
 )
 
 add_executable (unittest
