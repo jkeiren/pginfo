@@ -439,6 +439,6 @@ TEST(AlternationDepth, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR)
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
-  cpplogging::logger::set_reporting_level(cpplogging::verbose);
+  //cpplogging::logger::set_reporting_level(cpplogging::debug);
   return RUN_ALL_TESTS();
 }
