@@ -114,7 +114,7 @@ void report(const parity_game_t& pg, YAML::Emitter& out, const size_t max_vertic
         << YAML::BeginMap
         << YAML::Key << "min" << YAML::Value << neighbourhoods[i].min
         << YAML::Key << "max" << YAML::Value << neighbourhoods[i].max
-        << YAML::Key << "avg" << YAML::Value << static_cast<double>(neighbourhoods[i].min)/static_cast<double>(boost::num_vertices(pg))
+        << YAML::Key << "avg" << YAML::Value << static_cast<double>(neighbourhoods[i].sum)/static_cast<double>(boost::num_vertices(pg))
         << YAML::EndMap;
   }
   out << YAML::EndMap;
