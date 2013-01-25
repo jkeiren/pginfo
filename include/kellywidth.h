@@ -105,8 +105,6 @@ elimination_ordering_destructive(DirectedGraph& g)
   while(!pq.empty())
   {
     vertex_t u = pq.top();
-    if(pq.size() == 1)
-      std::cerr << "HIER" << std::endl;
     pq.pop();
     upperbound = std::max(upperbound, boost::out_degree(u, g));
     eliminate_vertex_directed(u, g, pq, handles);

@@ -22,6 +22,7 @@
 #include "scc.h"
 #include "alternation_depth.h"
 #include "treewidth.h"
+#include "kellywidth.h"
 
 inline
 void report(const parity_game_t& pg, YAML::Emitter& out, const size_t max_vertices_for_expensive_checks = 1000, const size_t neighbourhood_upto = 3)
@@ -123,6 +124,12 @@ void report(const parity_game_t& pg, YAML::Emitter& out, const size_t max_vertic
       << YAML::BeginMap
          << YAML::Key << "Lower bound" << YAML::Value << minor_min_width(pg)
          << YAML::Key << "Upper bound" << YAML::Value << greedy_degree(pg)
+      << YAML::EndMap;
+
+  out << YAML::Key << "Kelly-width"
+      << YAML::Value
+      << YAML::BeginMap
+      << YAML::Key << "Upper bound" << YAML::Value << elimination_ordering(pg)
       << YAML::EndMap;
 
   cpplog(cpplogging::verbose) << "Computing SCCs" << std::endl;
