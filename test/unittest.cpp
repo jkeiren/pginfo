@@ -22,6 +22,7 @@
 #include "entanglement.h"
 #include "treewidth.h"
 #include "alternation_depth.h"
+#include "kellywidth.h"
 
 template<typename ParityGame>
 void load_graph(ParityGame& pg, const std::string& s)
@@ -411,6 +412,27 @@ TEST(Treewidth, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR)
   EXPECT_EQ(2, minor_min_width(pg));
   EXPECT_EQ(2, greedy_degree(pg));
   //EXPECT_EQ(2, treewidth(pg));
+}
+
+TEST(Kellywidth, BUFFER_NODEADLOCK)
+{
+  undirected_parity_game_t pg;
+  load_graph(pg, BUFFER_NODEADLOCK);
+  EXPECT_EQ(1, elimination_ordering(pg));
+}
+
+TEST(Kellywidth, ABP_NODEADLOCK)
+{
+  undirected_parity_game_t pg;
+  load_graph(pg, ABP_NODEADLOCK);
+  EXPECT_EQ(2, elimination_ordering(pg));
+}
+
+TEST(Kellywidth, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR)
+{
+  undirected_parity_game_t pg;
+  load_graph(pg, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR);
+  EXPECT_EQ(2, elimination_ordering(pg));
 }
 
 TEST(AlternationDepth, BUFFER_NODEADLOCK)
