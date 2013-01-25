@@ -119,12 +119,17 @@ void report(const parity_game_t& pg, YAML::Emitter& out, const size_t max_vertic
   }
   out << YAML::EndMap;
 
-  out << YAML::Key << "Treewidth"
-      << YAML::Value
-      << YAML::BeginMap
-         << YAML::Key << "Lower bound" << YAML::Value << minor_min_width(pg)
-         << YAML::Key << "Upper bound" << YAML::Value << greedy_degree(pg)
-      << YAML::EndMap;
+  {
+    undirected_parity_game_t undirected_pg;
+    boost::copy_graph(pg, undirected_pg);
+
+    out << YAML::Key << "Treewidth"
+        << YAML::Value
+        << YAML::BeginMap
+           << YAML::Key << "Lower bound" << YAML::Value << minor_min_width(undirected_pg)
+           << YAML::Key << "Upper bound" << YAML::Value << greedy_degree(undirected_pg)
+        << YAML::EndMap;
+  }
 
   out << YAML::Key << "Kelly-width"
       << YAML::Value

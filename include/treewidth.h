@@ -57,24 +57,28 @@ void eliminate_vertex(typename boost::graph_traits<UndirectedGraph>::vertex_desc
                    PriorityQueue& pq,
                    HandleMap& handle)
 {
+  typedef typename boost::graph_traits<UndirectedGraph>::vertex_descriptor vertex_t;
   typename boost::graph_traits<UndirectedGraph>::adjacency_iterator ai, aj, aend;
+  typedef typename PriorityQueue::handle_type handle_t;
 
   boost::tie(ai, aend) = boost::adjacent_vertices(v, g);
   while(ai != aend)
   {
+    vertex_t u = *ai;
     for (aj = ai; aj != aend; ++aj)
     {
-      if(/* *ai != v && *aj != v && */ *ai != *aj)
+      vertex_t w = *aj;
+      if(u != v && u != w && v != w)
       {
-        boost::add_edge(*ai, *aj, g);
-        pq.decrease(handle[*ai]);
-        pq.decrease(handle[*aj]);
+        boost::add_edge(v, w, g);
+        pq.decrease(handle[v]);
+        pq.decrease(handle[w]);
       }
     }
-    typename boost::graph_traits<UndirectedGraph>::vertex_descriptor w = *ai++;
-    boost::remove_edge(v, w, g);
+    ai++;
+    boost::remove_edge(v, u, g);
     // no pq.increase(handle[v]) since v is not in pq.
-    pq.increase(handle[w]);
+    pq.increase(handle[u]);
   }
 }
 
