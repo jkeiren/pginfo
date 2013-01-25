@@ -17,7 +17,7 @@
 #include <boost/heap/fibonacci_heap.hpp>
 #include "cpplogging/logger.h"
 
-#include "neighbourhood.h"
+#include "graph_utilities.h"
 
 /* According to Obdrzalek in ... 2006, p.40
  * "There is an easy way to generalise the concept of tree-width to directed
@@ -26,20 +26,6 @@
  *  can correspond to two edges (u,v) and (v,u) of G. We can therefore
  *  freely talk about tree-width and tree decompositions of directed graphs."
  */
-
-template <typename Graph>
-void remove_selfloops(Graph& g)
-{
-  // add all edges of v to u
-  typename boost::graph_traits<Graph>::vertex_iterator i, end;
-  for(boost::tie(i, end) = boost::vertices(g); i != end; ++i)
-  {
-    if(boost::edge(*i, *i, g).second)
-    {
-      boost::remove_edge(*i, *i, g);
-    }
-  }
-}
 
 /* Known algorithms for computing upperbound on treewidth:
  * - LexBFS
@@ -56,22 +42,6 @@ void remove_selfloops(Graph& g)
 
 namespace detail
 {
-template <typename Graph>
-struct outdegree_compare
-{
-  const Graph& m_g;
-  typedef typename boost::graph_traits<Graph>::vertex_descriptor vertex_t;
-
-  outdegree_compare(const Graph& g)
-    : m_g(g)
-  {}
-
-  bool operator()(const vertex_t& v, const vertex_t& w) const
-  {
-    return boost::out_degree(v, m_g) > boost::out_degree(w, m_g);
-  }
-};
-
 /* \brief Eliminate a vertex v.
  *
  * v is eliminated by adding edges u -- w for all u,w s.t. u,w -- v, u != w.
@@ -121,7 +91,7 @@ greedy_degree_destructive(UndirectedGraph& g)
   remove_selfloops(g);
 
   // Build priority queue, sorted by outdegree, and record the handles.
-  typedef outdegree_compare<UndirectedGraph> cmp_t;
+  typedef outdegree_greater<UndirectedGraph> cmp_t;
   typedef boost::heap::fibonacci_heap<vertex_t, boost::heap::compare<cmp_t> > priority_queue_t;
   typedef typename priority_queue_t::handle_type handle_t;
   cmp_t cmp(g);
@@ -255,7 +225,7 @@ minor_min_width_destructive(UndirectedGraph& g)
   remove_selfloops(g);
 
   // build priority queue and record handles
-  typedef outdegree_compare<UndirectedGraph> cmp_t;
+  typedef outdegree_greater<UndirectedGraph> cmp_t;
   typedef boost::heap::fibonacci_heap<vertex_t, boost::heap::compare<cmp_t> > priority_queue_t;
   typedef typename priority_queue_t::handle_type handle_t;
   cmp_t cmp(g);
