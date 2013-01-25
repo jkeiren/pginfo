@@ -70,8 +70,8 @@ void eliminate_vertex(typename boost::graph_traits<UndirectedGraph>::vertex_desc
       vertex_t w = *aj;
       if(u != v && u != w && v != w)
       {
-        boost::add_edge(v, w, g);
-        pq.decrease(handle[v]);
+        boost::add_edge(u, w, g);
+        pq.decrease(handle[u]);
         pq.decrease(handle[w]);
       }
     }
