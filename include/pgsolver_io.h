@@ -55,7 +55,7 @@ class pgsolver_parser
 {
   public:
     pgsolver_parser(ParityGame& pg) :
-      m_pg(pg)
+      m_pg(pg), m_startvertex(0)
     {
     }
     void
@@ -67,6 +67,8 @@ class pgsolver_parser
 
   private:
     ParityGame& m_pg;
+    size_t m_startvertex;
+
     void
     parse_error(std::istream& s, const char* msg)
     {
@@ -94,18 +96,42 @@ class pgsolver_parser
     {
       std::string firstword;
       s >> std::skipws >> firstword;
-      if (firstword != "parity")
+      if (firstword == "parity")
       {
+        size_t n;
+        char c;
+        s >> n;
+        m_pg = ParityGame(n+1);
+        s >> c;
+        if (c != ';')
+          parse_error(s, "Invalid header, expected semicolon.");
+
+        // mlsolver allows start keyword
+        std::string secondword;
+        s >> std::skipws >> secondword;
+        if (secondword == "start")
+        {
+          size_t start_n;
+          char c;
+          s >> start_n;
+          if(start_n != 0)
+            parse_error(s, "Invalid start vertex, expected 0.");
+          s >> c;
+          if (c != ';')
+            parse_error(s, "Invalid header, expected semicolon.");
+        }
+        else
+        {
+          s.seekg(-secondword.length(), std::ios::cur);
+          return;
+        }
+      }
+      else
+      {
+        assert(firstword != "start");
         s.seekg(-firstword.length(), std::ios::cur);
         return;
       }
-      size_t n;
-      char c;
-      s >> n;
-      m_pg = ParityGame(n+1);
-      s >> c;
-      if (c != ';')
-        parse_error(s, "Invalid header, expected semicolon.");
     }
 
     void
