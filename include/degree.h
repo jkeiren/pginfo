@@ -22,7 +22,7 @@ double avg_degree(const Graph& g)
   cpplog(cpplogging::verbose) << "Computing average degree" << std::endl;
   double v = boost::num_vertices(g);
   double e = boost::num_edges(g);
-  return v/e;
+  return e/v;
 }
 
 template <typename Graph>
