@@ -12,6 +12,8 @@
 #ifndef KELLYWIDTH_H
 #define KELLYWIDTH_H
 
+#include "cpplogging/progress_meter.h"
+
 namespace detail
 {
 /* \brief Eliminate a vertex v.
@@ -82,6 +84,7 @@ elimination_ordering_destructive(DirectedGraph& g)
 {
   typedef typename boost::graph_traits<DirectedGraph>::vertices_size_type vertex_size_t;
   typedef typename boost::graph_traits<DirectedGraph>::vertex_descriptor vertex_t;
+  cpplogging::progress_meter progress(boost::num_vertices(g));
 
   // Build priority queue, sorted by outdegree, and record the handles.
   typedef outdegree_greater<DirectedGraph> cmp_t;
@@ -104,6 +107,7 @@ elimination_ordering_destructive(DirectedGraph& g)
 
   while(!pq.empty())
   {
+    progress.step();
     vertex_t u = pq.top();
     pq.pop();
     upperbound = std::max(upperbound, boost::out_degree(u, g));
