@@ -39,7 +39,7 @@ TEST(GraphStats, BUFFER_NODEADLOCK)
   load_graph(pg, BUFFER_NODEADLOCK);
   EXPECT_EQ(4, boost::num_vertices(pg));
   EXPECT_EQ(5, boost::num_edges(pg));
-  EXPECT_DOUBLE_EQ(4.0/5.0, avg_degree(pg));
+  EXPECT_DOUBLE_EQ(5.0/4.0, avg_degree(pg));
   EXPECT_EQ(1, min_degree(pg));
   EXPECT_EQ(5, max_degree(pg));
   EXPECT_DOUBLE_EQ(5.0/4.0, avg_in_degree(pg));
@@ -56,7 +56,7 @@ TEST(GraphStats, ABP_NODEADLOCK)
   load_graph(pg, ABP_NODEADLOCK);
   EXPECT_EQ(75, boost::num_vertices(pg));
   EXPECT_EQ(93, boost::num_edges(pg));
-  EXPECT_DOUBLE_EQ(75.0/93.0, avg_degree(pg));
+  EXPECT_DOUBLE_EQ(93.0/75.0, avg_degree(pg));
   EXPECT_EQ(1, min_degree(pg));
   EXPECT_EQ(5, max_degree(pg));
   EXPECT_DOUBLE_EQ(1.24, avg_in_degree(pg));
@@ -73,13 +73,13 @@ TEST(GraphStats, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR)
   load_graph(pg, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR);
   EXPECT_EQ(132, boost::num_vertices(pg));
   EXPECT_EQ(162, boost::num_edges(pg));
-  EXPECT_DOUBLE_EQ(132.0/162.0, avg_degree(pg));
+  EXPECT_DOUBLE_EQ(162.0/132.0, avg_degree(pg));
   EXPECT_EQ(1, min_degree(pg));
   EXPECT_EQ(7, max_degree(pg));
-  EXPECT_DOUBLE_EQ(132.0/162.0, avg_degree(pg));
+  EXPECT_DOUBLE_EQ(162.0/132.0, avg_degree(pg));
   EXPECT_EQ(0, min_in_degree(pg));
   EXPECT_EQ(5, max_in_degree(pg));
-  EXPECT_DOUBLE_EQ(132.0/162.0, avg_degree(pg));
+  EXPECT_DOUBLE_EQ(162.0/132.0, avg_degree(pg));
   EXPECT_EQ(1, min_out_degree(pg));
   EXPECT_EQ(4, max_out_degree(pg));
 }
