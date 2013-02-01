@@ -16,6 +16,7 @@
 #include <boost/graph/copy.hpp>
 #include <boost/heap/fibonacci_heap.hpp>
 #include "cpplogging/logger.h"
+#include "cpplogging/progress_meter.h"
 
 #include "graph_utilities.h"
 
@@ -65,15 +66,20 @@ void eliminate_vertex(typename boost::graph_traits<UndirectedGraph>::vertex_desc
   while(ai != aend)
   {
     vertex_t u = *ai;
-    for (aj = ai; aj != aend; ++aj)
+    aj = ai;
+    ++aj;
+    while(aj != aend)
     {
       vertex_t w = *aj;
       if(u != v && u != w && v != w)
       {
-        boost::add_edge(u, w, g);
-        pq.decrease(handle[u]);
-        pq.decrease(handle[w]);
+        if(boost::add_edge(u, w, g).second)
+        {
+          pq.decrease(handle[u]);
+          pq.decrease(handle[w]);
+        }
       }
+      ++aj;
     }
     ai++;
     boost::remove_edge(v, u, g);
@@ -89,6 +95,9 @@ greedy_degree_destructive(UndirectedGraph& g)
 {
   typedef typename boost::graph_traits<UndirectedGraph>::vertices_size_type vertex_size_t;
   typedef typename boost::graph_traits<UndirectedGraph>::vertex_descriptor vertex_t;
+
+  cpplog(cpplogging::verbose) << "Computing greedy degree" << std::endl;
+  cpplogging::progress_meter progress(boost::num_vertices(g));
 
   // We do not count selfloops, first remove so we can use out_degree to
   // determine the neighbourhood.
@@ -113,6 +122,7 @@ greedy_degree_destructive(UndirectedGraph& g)
 
   while(!pq.empty())
   {
+    progress.step();
     vertex_t u = pq.top();
     pq.pop();
     upperbound = std::max(upperbound, boost::out_degree(u, g));
@@ -161,45 +171,42 @@ void contract_edge(typename boost::graph_traits<UndirectedGraph>::vertex_descrip
                    HandleMap& handle)
 {
   // ensure u is the vertex with largest number of neighbours
-  cpplog(cpplogging::debug, "contract_edge") << "u = " << u << ", v = " << v << " out-degrees " << boost::out_degree(u,g) << ", " << boost::out_degree(v,g) << std::endl;
-  if(boost::out_degree(u, g) < boost::out_degree(v, g))
-  {
-    std::swap(u,v);
-    cpplog(cpplogging::debug, "contract_edge") << "swapping such that u = " << u << ", v = " << v << " out-degrees " << boost::out_degree(u,g) << ", " << boost::out_degree(v,g) << std::endl;
-  }
+  assert(boost::out_degree(v, g) <= boost::out_degree(u,g));
 
+  cpplog(cpplogging::debug, "contract_edge") << "u = " << u << ", v = " << v << " out-degrees " << boost::out_degree(u,g) << ", " << boost::out_degree(v,g) << std::endl;
   cpplog(cpplogging::debug, "contract_edge") << "removing " << u << "--" << v << std::endl;
   boost::remove_edge(u, v, g);
-  pq.increase(handle[u]);
-  pq.increase(handle[v]);
 
   // add all edges of v to u
   // need while loop here to prevent invalidation of ai iterator before
   // incrementing.
   typename boost::graph_traits<UndirectedGraph>::adjacency_iterator ai, aend;
   boost::tie(ai, aend) = boost::adjacent_vertices(v, g);
+  bool decrease_u = (ai != aend); // if we have got edges left, then we add additional edges to u,
+  // so its outdegree increases, otherwise it decreases because u was v's only neighbour.
   while(ai != aend)
   {
     typename boost::graph_traits<UndirectedGraph>::vertex_descriptor w = *(ai++);
-    assert(w != v);
-    if(w != u)
-    {
-      cpplog(cpplogging::debug, "contract_edge") << "adding " << u << "--" << *ai << std::endl;
-      boost::add_edge(u, w, g);
-      pq.decrease(handle[u]);
-      pq.decrease(handle[w]);
-    }
-    cpplog(cpplogging::debug, "contract_edge") << "removing " << v << "--" << *ai << std::endl;
+    assert(w != v); // no self loops
+    assert(w != u); // u -- v was already removed, and we have no multi-edges
+    cpplog(cpplogging::debug, "contract_edge") << "adding " << u << "--" << *ai << std::endl;
     boost::remove_edge(v, w, g);
-    pq.increase(handle[w]);
-    pq.increase(handle[v]);
+
+    if(!boost::add_edge(u, w, g).second)
+    {
+      pq.increase(handle[w]);
+    }
+
+    cpplog(cpplogging::debug, "contract_edge") << "removing " << v << "--" << w << std::endl;
   }
+  // trick because increase is more efficient than decrease.
+  if(decrease_u)
+    pq.decrease(handle[u]);
+  else
+    pq.increase(handle[u]);
 
   assert(boost::out_degree(v,g) == 0);
   assert(boost::num_edges(g) == 0 || boost::out_degree(u,g) > 0);
-  assert(boost::num_edges(g) == 0 || pq.top() == v);
-  cpplog(cpplogging::debug) << "Removing " << v << " from the queue" << std::endl;
-  pq.pop();
 }
 
 /* \brief Determine lowerbound on treewidth through Minor-Min-Width algorithm.
@@ -223,7 +230,7 @@ minor_min_width_destructive(UndirectedGraph& g)
   typedef typename boost::graph_traits<UndirectedGraph>::vertices_size_type vertex_size_t;
   typedef typename boost::graph_traits<UndirectedGraph>::vertex_descriptor vertex_t;
 
-  cpplog(cpplogging::debug) << "Computing Minor-Min-Width" << std::endl;
+  cpplog(cpplogging::verbose) << "Computing Minor-Min-Width" << std::endl;
   cpplog(cpplogging::debug) << "Removing self loops" << std::endl;
 
   remove_selfloops(g);
@@ -242,16 +249,20 @@ minor_min_width_destructive(UndirectedGraph& g)
     handles.push_back(pq.push(*i));
   }
 
+  cpplogging::progress_meter progress(boost::num_vertices(g));
+
   // Determine lowerbound according to minor min-width strategy
   cpplog(cpplogging::debug) << "init: lowerbound = 0" << std::endl;
   vertex_size_t lowerbound = 0;
 
   while(!pq.empty())
   {
+    progress.step();
     if(boost::num_edges(g) == 0)
       return lowerbound;
 
     vertex_t u = pq.top();
+    pq.pop();
     vertex_size_t degree_u = boost::out_degree(u, g);
     assert(degree_u > 0);
     cpplog(cpplogging::debug) << "top element of queue: " << u << " with out-degree " << degree_u << std::endl;
@@ -259,7 +270,7 @@ minor_min_width_destructive(UndirectedGraph& g)
     lowerbound = std::max(degree_u, lowerbound);
     cpplog(cpplogging::debug) << "lowerbound = " << lowerbound << std::endl;
 
-    vertex_t v;
+    vertex_t v = vertex_t(); // v is always overwritten in the loop, silence warning
     vertex_size_t degree_v = std::numeric_limits<vertex_size_t>::max();
     typename boost::graph_traits<UndirectedGraph>::adjacency_iterator ai, aend;
     for (boost::tie(ai, aend) = boost::adjacent_vertices(u, g); ai != aend; ++ai)
