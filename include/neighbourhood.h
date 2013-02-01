@@ -15,55 +15,7 @@
 #include <algorithm>
 #include <limits>
 #include "cpplogging/logger.h"
-
-namespace detail
-{
-
-/**
- * \brief Exception class for errors raised by the command-line parser.
- **/
-class bound_reached_exception : public std::exception
-{
-public:
-  bound_reached_exception() throw()
-    : std::exception()
-  {}
-  virtual const char* what() const throw()
-  {
-    return "Bound reached";
-  }
-  virtual ~bound_reached_exception() throw()
-  {}
-};
-
-template <class DistanceMap, class Tag>
-struct bounded_distance_recorder
-  : public boost::base_visitor<bounded_distance_recorder<DistanceMap, Tag> >
-{
-  typedef Tag event_filter;
-  DistanceMap m_distance;
-  const size_t m_bound;
-
-  bounded_distance_recorder(DistanceMap pa, const size_t bound)
-    : m_distance(pa), m_bound(bound) { }
-
-  template <class Edge, class Graph>
-  void operator()(Edge e, const Graph& g) {
-    typename boost::graph_traits<Graph>::vertex_descriptor
-      u = source(e, g), v = target(e, g);
-    if(boost::get(m_distance, u) + 1 > m_bound)
-      throw bound_reached_exception();
-    boost::put(m_distance, v, boost::get(m_distance, u) + 1);
-  }
-};
-
-template <class DistanceMap, class Tag>
-bounded_distance_recorder<DistanceMap, Tag>
-bounded_record_distances(DistanceMap pa, const size_t bound, Tag) {
-  return bounded_distance_recorder<DistanceMap, Tag> (pa, bound);
-}
-
-} // namespace detail
+#include "cpplogging/progress_meter.h"
 
 template<typename Graph>
 inline
@@ -71,23 +23,37 @@ std::vector<typename boost::graph_traits<Graph>::vertices_size_type>
 upto_kneighbourhood(typename Graph::vertex_descriptor v, const Graph& g, const size_t k)
 {
   typedef typename boost::graph_traits<Graph>::vertices_size_type vertex_size_t;
+  typedef typename boost::graph_traits<Graph>::vertex_descriptor vertex_t;
+  std::set<vertex_t> visited;
+  std::vector<std::pair<vertex_t, size_t> > queue;
+  queue.push_back(std::make_pair(v, 0));
+  visited.insert(v);
+  size_t current = 0; // current position in the queue
   std::vector<vertex_size_t> result(k+1,0);
   if(k == 0) return result;
-  std::vector<vertex_size_t> d(boost::num_vertices(g), std::numeric_limits<vertex_size_t>::max());
-  d[v] = 0;
-  try
+
+  while(current < queue.size())
   {
-    boost::breadth_first_search(g, v,
-            boost::visitor(boost::make_bfs_visitor(detail::bounded_record_distances(&d[0], k, boost::on_tree_edge()))
-        ));
+    if(queue[current].second < k)
+    {
+      typename boost::graph_traits< Graph >::adjacency_iterator ai,aend;
+      for(boost::tie(ai, aend) = boost::adjacent_vertices(queue[current].first, g); ai != aend; ++ai)
+      {
+        if(visited.find(*ai) == visited.end())
+        {
+          visited.insert(*ai);
+          queue.push_back(std::make_pair(*ai, queue[current].second + 1));
+        }
+      }
+    }
+    ++current;
   }
-  catch (detail::bound_reached_exception&)
-  {};
+
   for(size_t i = 0; i <= k; ++i)
   {
-    result[i] = std::count_if(d.begin(), d.end(), [&i](vertex_size_t x) { return 0 < x && x <= i; });
+    result[i] = std::count_if(queue.begin(), queue.end(), [&i](std::pair<vertex_size_t, size_t> x) { return 0 < x.second && x.second <= i; });
   }
-return result;
+  return result;
 }
 
 template<typename Graph>
@@ -123,14 +89,14 @@ std::vector<neighbourhood_result>
 accumulated_upto_kneighbourhood(Graph& g, const size_t k)
 {
   cpplog(cpplogging::verbose) << "Computing accumulated neighbourhood information" << std::endl;
+  cpplogging::progress_meter progress(boost::num_vertices(g));
+
   std::vector<neighbourhood_result> result(k+1, neighbourhood_result());
   typename boost::graph_traits<Graph>::vertex_iterator i, end;
   for (boost::tie(i, end) = vertices(g); i != end; ++i)
   {
-    if((*i % 1000) == 0)
-    {
-      cpplog(cpplogging::status) << "Processed " << *i << " vertices" << std::endl;
-    }
+    progress.step();
+
     std::vector<typename boost::graph_traits<Graph>::vertices_size_type> tmp = upto_kneighbourhood(*i, g, k);
     for(size_t i = 0; i <= k; ++i)
     {
@@ -139,7 +105,7 @@ accumulated_upto_kneighbourhood(Graph& g, const size_t k)
       result[i].max = std::max(result[i].max, tmp[i]);
     }
   }
-  cpplog(cpplogging::verbose) << "done" << std::endl;
+
   return result;
 }
 
