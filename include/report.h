@@ -68,31 +68,35 @@ void report(const parity_game_t& pg, YAML::Emitter& out, const report_options op
 
   if(options.general_graph_info)
   {
-    out << YAML::Key << "Number of vertices"
-        << YAML::Value << boost::num_vertices(pg)
-        << YAML::Key << "Number of edges"
-        << YAML::Value << boost::num_edges(pg)
-        << YAML::Key << "Degree"
-           << YAML::Value
-           << YAML::BeginMap
-           << YAML::Key << "min" << YAML::Value << min_degree(pg)
-           << YAML::Key << "max" << YAML::Value << max_degree(pg)
-           << YAML::Key << "avg" << YAML::Value << avg_degree(pg)
-           << YAML::EndMap
-        << YAML::Key << "In-degree"
-           << YAML::Value
-           << YAML::BeginMap
-           << YAML::Key << "min" << YAML::Value << min_in_degree(pg)
-           << YAML::Key << "max" << YAML::Value << max_in_degree(pg)
-           << YAML::Key << "avg" << YAML::Value << avg_in_degree(pg)
-           << YAML::EndMap
-        << YAML::Key << "Out-degree"
-           << YAML::Value
-           << YAML::BeginMap
-           << YAML::Key << "min" << YAML::Value << min_out_degree(pg)
-           << YAML::Key << "max" << YAML::Value << max_out_degree(pg)
-           << YAML::Key << "avg" << YAML::Value << avg_out_degree(pg)
-           << YAML::EndMap;
+    out << YAML::Key << "Graph"
+        << YAML::Value
+        << YAML::BeginMap
+          << YAML::Key << "Number of vertices"
+          << YAML::Value << boost::num_vertices(pg)
+          << YAML::Key << "Number of edges"
+          << YAML::Value << boost::num_edges(pg)
+          << YAML::Key << "Degree"
+             << YAML::Value
+             << YAML::BeginMap
+             << YAML::Key << "min" << YAML::Value << min_degree(pg)
+             << YAML::Key << "max" << YAML::Value << max_degree(pg)
+             << YAML::Key << "avg" << YAML::Value << avg_degree(pg)
+             << YAML::EndMap
+          << YAML::Key << "In-degree"
+             << YAML::Value
+             << YAML::BeginMap
+             << YAML::Key << "min" << YAML::Value << min_in_degree(pg)
+             << YAML::Key << "max" << YAML::Value << max_in_degree(pg)
+             << YAML::Key << "avg" << YAML::Value << avg_in_degree(pg)
+             << YAML::EndMap
+          << YAML::Key << "Out-degree"
+             << YAML::Value
+             << YAML::BeginMap
+             << YAML::Key << "min" << YAML::Value << min_out_degree(pg)
+             << YAML::Key << "max" << YAML::Value << max_out_degree(pg)
+             << YAML::Key << "avg" << YAML::Value << avg_out_degree(pg)
+             << YAML::EndMap;
+        << YAML::EndMap;
   }
 
   if(options.bfs_info)
