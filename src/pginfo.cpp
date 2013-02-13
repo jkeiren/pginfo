@@ -14,8 +14,7 @@ private:
   std::ofstream m_ofstream;
 
 protected:
-  size_t m_max_vertices_for_expensive;
-  size_t m_neighbourhood_upto;
+  report_options m_options;
   typedef tools::input_output_tool super;
 
 public:
@@ -24,8 +23,7 @@ public:
                                         "Jeroen J.A. Keiren",
                                         "Provides various sorts of structural information about parity games.",
                                         "Structural properties that are described in the paper XXX"), // TODO
-      m_max_vertices_for_expensive(1000),
-      m_neighbourhood_upto(3)
+      m_options(false)
   {}
 
   void
@@ -33,22 +31,47 @@ public:
   {
     super::add_options(desc);
     desc.
-        add_option("max-vertices-for-expensive", make_mandatory_argument("NUM"),
-                   "perform expensive checks only if the number of vertices is at most NUM", 'm').
-        add_option("neighbourhood-upto", make_mandatory_argument("NUM"),
-                   "compute all neighbourhoods up to and including the NUM-neighbourhood", 'n');;
+        add_option("all", "compute all statistics about the graph. Overrules all other options").
+        add_option("graph", "compute general information about the graph").
+        add_option("bfs", "compute information from BFS on the graph").
+        add_option("dfs", "compute information from DFS on the graph").
+        add_option("diameter", "compute the diameter of the graph").
+        add_option("girth", "compute the girth of the graph").
+        add_option("diamonds", "compute the number of diamonds in the graph").
+        add_option("neighbourhoods", make_mandatory_argument<size_t>("NUM"),
+                   "compute the sizes of the neighbourhoods up to and including NUM").
+        add_option("treewidth-lb", "compute lowerbound on treewidth").
+        add_option("treewidth-ub", "compute upperbound on treewidth").
+        add_option("kellywidth-ub", "compute upperbound on Kelly-width").
+        add_option("sccs", "compute strongly connected components").
+        add_option("ad-cks", "compute alternation-depth using the algorithm from [CKS93]").
+        add_option("ad", "compute alternation-depth using a sorting of priorities");
   }
 
   void parse_options(const command_line_parser& parser)
   {
     super::parse_options(parser);
-    if (parser.options.count("max-vertices-for-expensive"))
+    if (parser.options.count("all"))
     {
-      m_max_vertices_for_expensive = parser.option_argument_as< size_t > ("max-vertices-for-expensive");
+      m_options = report_options(true);
     }
-    if (parser.options.count("neighbourhood-upto"))
+    else
     {
-      m_neighbourhood_upto = parser.option_argument_as< size_t > ("neighbourhood-upto");
+      m_options.general_graph_info = parser.options.count("graph");
+      m_options.bfs_info = parser.options.count("bfs");
+      m_options.dfs_info = parser.options.count("dfs");
+      m_options.diameter = parser.options.count("diameter");
+      m_options.girth = parser.options.count("girth");
+      m_options.diamonds = parser.options.count("diamonds");
+      m_options.neighbourhoods = parser.options.count("neighbourhoods");
+      if(m_options.neighbourhoods)
+        m_options.neighbourhoods_upto = parser.option_argument_as<size_t>("neighbourhoods");
+      m_options.treewidth_lowerbound = parser.options.count("treewidth-lb");
+      m_options.treewidth_upperbound = parser.options.count("treewidth-ub");
+      m_options.kellywidth_upperbound = parser.options.count("kellywidth-ub");
+      m_options.sccs = parser.options.count("sccs");
+      m_options.alternation_depth_cks = parser.options.count("ad-cks");
+      m_options.alternation_depth = parser.options.count("ad");
     }
   }
 
@@ -61,7 +84,7 @@ public:
     parse_pgsolver(pg, is, timer());
     YAML::Emitter out;
 
-    report(pg, out, m_max_vertices_for_expensive, m_neighbourhood_upto);
+    report(pg, out, m_options);
 
     os << out.c_str() << std::endl;
 
