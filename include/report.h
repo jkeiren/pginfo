@@ -95,7 +95,7 @@ void report(const parity_game_t& pg, YAML::Emitter& out, const report_options op
              << YAML::Key << "min" << YAML::Value << min_out_degree(pg)
              << YAML::Key << "max" << YAML::Value << max_out_degree(pg)
              << YAML::Key << "avg" << YAML::Value << avg_out_degree(pg)
-             << YAML::EndMap;
+             << YAML::EndMap
         << YAML::EndMap;
   }
 
