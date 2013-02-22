@@ -118,11 +118,19 @@ void report(const parity_game_t& pg, YAML::Emitter& out, const report_options op
           << YAML::Key << "Lengths of back level edges"
           << YAML::Value << bfs_back_level_edges;
 
+
     if(boost::num_vertices(pg) <= options.max_vertices_for_expensive_checks)
     {
       std::vector<vertex_size_t> queue_sizes = bfs_queue_sizes(pg);
-      out << YAML::Key << "Queue sizes"
+      out << YAML::Key << "Max queue"
+          << YAML::Value << *std::max_element(queue_sizes.begin(), queue_sizes.end())
+          << YAML::Key << "Queue sizes"
           << YAML::Value << queue_sizes;
+    }
+    else
+    {
+      out << YAML::Key << "Max queue"
+          << YAML::Value << bfs_max_queue_size(pg);
     }
 
     out << YAML::EndMap;

@@ -114,6 +114,8 @@ TEST(BFS, BUFFER_NODEADLOCK)
   load_graph(pg, BUFFER_NODEADLOCK);
   EXPECT_EQ(3, bfs_levels(pg));
   EXPECT_EQ(2, back_level_edges(pg));
+  std::vector<boost::graph_traits<parity_game_t>::vertices_size_type> sizes = bfs_queue_sizes(pg);
+  EXPECT_EQ(*std::max_element(sizes.begin(),sizes.end()), bfs_max_queue_size(pg));
 }
 
 TEST(BFS, ABP_NODEADLOCK)
@@ -122,6 +124,8 @@ TEST(BFS, ABP_NODEADLOCK)
   load_graph(pg, ABP_NODEADLOCK);
   EXPECT_EQ(21, bfs_levels(pg));
   EXPECT_EQ(14, back_level_edges(pg));
+  std::vector<boost::graph_traits<parity_game_t>::vertices_size_type> sizes = bfs_queue_sizes(pg);
+  EXPECT_EQ(*std::max_element(sizes.begin(),sizes.end()), bfs_max_queue_size(pg));
 }
 
 TEST(BFS, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR)
@@ -130,6 +134,8 @@ TEST(BFS, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR)
   load_graph(pg, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR);
   EXPECT_EQ(21, bfs_levels(pg));
   EXPECT_EQ(25, back_level_edges(pg));
+  std::vector<boost::graph_traits<parity_game_t>::vertices_size_type> sizes = bfs_queue_sizes(pg);
+  EXPECT_EQ(*std::max_element(sizes.begin(),sizes.end()), bfs_max_queue_size(pg));
 }
 
 TEST(DFS, BUFFER_NODEADLOCK)

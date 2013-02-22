@@ -74,7 +74,6 @@ struct stack_pop_max_recorder: public boost::default_dfs_visitor
   {
     --m_cur_stacksize;
     m_max_stacksize = std::max(m_max_stacksize, m_cur_stacksize);
-    std::cerr << "max " << m_max_stacksize << " cur " << m_max_stacksize << std::endl;
   }
 };
 
