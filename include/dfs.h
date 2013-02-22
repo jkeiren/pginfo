@@ -58,6 +58,26 @@ struct stack_pop_recorder: public boost::default_dfs_visitor
   }
 };
 
+struct stack_pop_max_recorder: public boost::default_dfs_visitor
+{
+  size_t& m_cur_stacksize;
+  size_t& m_max_stacksize;
+  typedef boost::on_finish_vertex event_filter;
+
+  stack_pop_max_recorder(size_t& cur_stacksize, size_t& max_stacksize)
+    : m_cur_stacksize(cur_stacksize),
+      m_max_stacksize(max_stacksize)
+  {}
+
+  template<typename Vertex, typename Graph>
+  inline void operator()(Vertex, Graph&)
+  {
+    --m_cur_stacksize;
+    m_max_stacksize = std::max(m_max_stacksize, m_cur_stacksize);
+    std::cerr << "max " << m_max_stacksize << " cur " << m_max_stacksize << std::endl;
+  }
+};
+
 template<class Tag>
 inline stack_push_recorder<Tag>
 record_stack_push(size_t& cur_stacksize, Tag)
@@ -70,6 +90,13 @@ inline stack_pop_recorder<StackSizeMap>
 record_stack_pop(size_t& cur_stacksize, StackSizeMap stack_sizes)
 {
   return stack_pop_recorder<StackSizeMap>(cur_stacksize, stack_sizes);
+}
+
+inline stack_pop_max_recorder
+record_stack_pop_max(size_t& cur_stacksize, size_t& max)
+{
+  std::cerr << "ik" << std::endl;
+  return stack_pop_max_recorder(cur_stacksize, max);
 }
 
 } // namespace detail
@@ -88,6 +115,22 @@ dfs_stack_sizes(const Graph& g, typename Graph::vertex_descriptor v = 0)
           detail::record_stack_pop(cur, &(stack_size_map[0]))
       ))).root_vertex(v));
   return stack_size_map;
+}
+
+template<typename Graph>
+inline
+typename boost::graph_traits<Graph>::vertices_size_type
+dfs_max_stack_size(const Graph& g, typename Graph::vertex_descriptor v = 0)
+{
+  typedef typename boost::graph_traits<Graph>::vertices_size_type vertex_size_t;
+  vertex_size_t cur = 0;
+  vertex_size_t max = 0;
+  boost::depth_first_search(g,
+      boost::visitor(boost::make_dfs_visitor(std::make_pair(
+          detail::record_stack_push(cur, boost::on_discover_vertex()),
+          detail::record_stack_pop_max(cur, max)
+      ))).root_vertex(v));
+  return max;
 }
 
 #endif // DFS_INFO_H

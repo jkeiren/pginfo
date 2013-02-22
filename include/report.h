@@ -55,7 +55,8 @@ struct report_options
       treewidth_upperbound(all),
       kellywidth_upperbound(all),
       alternation_depth_cks(all),
-      alternation_depth(all)
+      alternation_depth(all),
+      max_vertices_for_expensive_checks(std::numeric_limits<size_t>::max())
   {}
 };
 
@@ -105,7 +106,6 @@ void report(const parity_game_t& pg, YAML::Emitter& out, const report_options op
     vertex_size_t nlevels = bfs_levels(pg, 0, levels);
     std::map<vertex_size_t, vertex_size_t> bfs_back_level_edges;
     vertex_size_t nback_edges = back_level_edges(pg, 0, bfs_back_level_edges);
-    std::vector<vertex_size_t> queue_sizes = bfs_queue_sizes(pg);
     out << YAML::Key << "BFS"
         << YAML::Value
         << YAML::BeginMap
@@ -116,23 +116,40 @@ void report(const parity_game_t& pg, YAML::Emitter& out, const report_options op
           << YAML::Key << "Number of back level edges"
           << YAML::Value << nback_edges
           << YAML::Key << "Lengths of back level edges"
-          << YAML::Value << bfs_back_level_edges
-          << YAML::Key << "Queue sizes"
-          << YAML::Value << queue_sizes
-       << YAML::EndMap;
+          << YAML::Value << bfs_back_level_edges;
+
+    if(boost::num_vertices(pg) <= options.max_vertices_for_expensive_checks)
+    {
+      std::vector<vertex_size_t> queue_sizes = bfs_queue_sizes(pg);
+      out << YAML::Key << "Queue sizes"
+          << YAML::Value << queue_sizes;
+    }
+
+    out << YAML::EndMap;
   }
 
   if(options.dfs_info)
   {
-    std::vector<vertex_size_t> stack_sizes = dfs_stack_sizes(pg);
     out << YAML::Key << "DFS"
         << YAML::Value
-        << YAML::BeginMap
-        << YAML::Key << "Max stack"
-        << YAML::Value << *std::max_element(stack_sizes.begin(), stack_sizes.end())
-        << YAML::Key << "Stack sizes"
-        << YAML::Value << stack_sizes
-        << YAML::EndMap;
+        << YAML::BeginMap;
+
+    if(boost::num_vertices(pg) <= options.max_vertices_for_expensive_checks)
+    {
+      std::vector<vertex_size_t> stack_sizes = dfs_stack_sizes(pg);
+      out << YAML::Key << "Max stack"
+          << YAML::Value << *std::max_element(stack_sizes.begin(), stack_sizes.end())
+          << YAML::Key << "Stack sizes"
+          << YAML::Value << stack_sizes;
+    }
+    else
+    {
+      out << YAML::Key << "Max stack"
+          << YAML::Value << dfs_max_stack_size(pg);
+    }
+
+    out << YAML::EndMap;
+
   }
 
   if(options.diameter)
