@@ -114,6 +114,8 @@ TEST(BFS, BUFFER_NODEADLOCK)
   load_graph(pg, BUFFER_NODEADLOCK);
   EXPECT_EQ(3, bfs_levels(pg));
   EXPECT_EQ(2, back_level_edges(pg));
+  std::vector<boost::graph_traits<parity_game_t>::vertices_size_type> sizes = bfs_queue_sizes(pg);
+  EXPECT_EQ(*std::max_element(sizes.begin(),sizes.end()), bfs_max_queue_size(pg));
 }
 
 TEST(BFS, ABP_NODEADLOCK)
@@ -122,6 +124,8 @@ TEST(BFS, ABP_NODEADLOCK)
   load_graph(pg, ABP_NODEADLOCK);
   EXPECT_EQ(21, bfs_levels(pg));
   EXPECT_EQ(14, back_level_edges(pg));
+  std::vector<boost::graph_traits<parity_game_t>::vertices_size_type> sizes = bfs_queue_sizes(pg);
+  EXPECT_EQ(*std::max_element(sizes.begin(),sizes.end()), bfs_max_queue_size(pg));
 }
 
 TEST(BFS, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR)
@@ -130,6 +134,8 @@ TEST(BFS, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR)
   load_graph(pg, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR);
   EXPECT_EQ(21, bfs_levels(pg));
   EXPECT_EQ(25, back_level_edges(pg));
+  std::vector<boost::graph_traits<parity_game_t>::vertices_size_type> sizes = bfs_queue_sizes(pg);
+  EXPECT_EQ(*std::max_element(sizes.begin(),sizes.end()), bfs_max_queue_size(pg));
 }
 
 TEST(DFS, BUFFER_NODEADLOCK)
@@ -138,6 +144,7 @@ TEST(DFS, BUFFER_NODEADLOCK)
   load_graph(pg, BUFFER_NODEADLOCK);;
   std::vector<boost::graph_traits<parity_game_t>::vertices_size_type> s = dfs_stack_sizes(pg);
   EXPECT_EQ(2, *std::max_element(s.begin(), s.end()));
+  EXPECT_EQ(*std::max_element(s.begin(), s.end()),dfs_max_stack_size(pg));
 }
 
 TEST(DFS, ABP_NODEADLOCK)
@@ -147,6 +154,7 @@ TEST(DFS, ABP_NODEADLOCK)
   std::vector<boost::graph_traits<parity_game_t>::vertices_size_type> s = dfs_stack_sizes(pg);
   //EXPECT_EQ(5, dfs_max_stacksize(pg)); previous implementation
   EXPECT_EQ(20, *std::max_element(s.begin(), s.end()));
+  EXPECT_EQ(*std::max_element(s.begin(), s.end()),dfs_max_stack_size(pg));
 }
 
 TEST(DFS, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR)
@@ -156,6 +164,7 @@ TEST(DFS, ABP_READ_THEN_EVENTUALLY_SEND_IF_FAIR)
   std::vector<boost::graph_traits<parity_game_t>::vertices_size_type> s = dfs_stack_sizes(pg);
   //EXPECT_EQ(7, dfs_max_stacksize(pg)); previous implementation
   EXPECT_EQ(20, *std::max_element(s.begin(), s.end()));
+  EXPECT_EQ(*std::max_element(s.begin(), s.end()),dfs_max_stack_size(pg));
 }
 
 TEST(Diameter, BUFFER_NODEADLOCK)

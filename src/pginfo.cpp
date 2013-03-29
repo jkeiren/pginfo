@@ -45,7 +45,10 @@ public:
         add_option("kellywidth-ub", "compute upperbound on Kelly-width").
         add_option("sccs", "compute strongly connected components").
         add_option("ad-cks", "compute alternation-depth using the algorithm from [CKS93]").
-        add_option("ad", "compute alternation-depth using a sorting of priorities");
+        add_option("ad", "compute alternation-depth using a sorting of priorities").
+        add_option("max-for-expensive", make_mandatory_argument<size_t>("NUM"),
+                    "for BFS and DFS do not records queue or stack sizes if the "
+                    "number of vertices exceeds NUM");
   }
 
   void parse_options(const command_line_parser& parser)
@@ -72,6 +75,10 @@ public:
       m_options.sccs = parser.options.count("sccs");
       m_options.alternation_depth_cks = parser.options.count("ad-cks");
       m_options.alternation_depth = parser.options.count("ad");
+    }
+    if(parser.options.count("max-for-expensive"))
+    {
+      m_options.max_vertices_for_expensive_checks = parser.option_argument_as<size_t>("max-for-expensive");
     }
   }
 

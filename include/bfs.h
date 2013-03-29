@@ -85,6 +85,25 @@ struct queue_remove_recorder: public boost::default_bfs_visitor
   }
 };
 
+struct queue_max_remove_recorder: public boost::default_bfs_visitor
+{
+  size_t& m_cur_queue_size;
+  size_t& m_max_queue_size;
+  typedef boost::on_finish_vertex event_filter;
+
+  queue_max_remove_recorder(size_t& cur_queue_size, size_t& max)
+    : m_cur_queue_size(cur_queue_size),
+      m_max_queue_size(max)
+  {}
+
+  template<typename Vertex, typename Graph>
+  inline void operator()(Vertex, Graph&)
+  {
+    --m_cur_queue_size;
+    m_max_queue_size = std::max(m_max_queue_size, m_cur_queue_size);
+  }
+};
+
 template<class Tag>
 inline queue_append_recorder<Tag>
 record_queue_append(size_t& cur_queue_size, Tag)
@@ -97,6 +116,12 @@ inline queue_remove_recorder<QueueSizeMap>
 record_queue_remove(size_t& cur_queue_size, QueueSizeMap queue_sizes)
 {
   return queue_remove_recorder<QueueSizeMap>(cur_queue_size, queue_sizes);
+}
+
+inline queue_max_remove_recorder
+record_queue_max_remove(size_t& cur_queue_size, size_t& max)
+{
+  return queue_max_remove_recorder(cur_queue_size, max);
 }
 
 } // namespace detail
@@ -176,9 +201,27 @@ bfs_queue_sizes(const Graph& g, typename Graph::vertex_descriptor v = 0)
   boost::breadth_first_search(g, v,
       boost::visitor(boost::make_bfs_visitor(std::make_pair(
           detail::record_queue_append(cur, boost::on_discover_vertex()),
-          detail::record_queue_remove(cur, &(queue_size_map[0]))
+          detail::record_queue_remove(cur, &queue_size_map[0])
       ))));
   return queue_size_map;
+}
+
+template<typename Graph>
+inline
+typename boost::graph_traits<Graph>::vertices_size_type
+bfs_max_queue_size(const Graph& g, typename Graph::vertex_descriptor v = 0)
+{
+  cpplog(cpplogging::verbose) << "Recording BFS queue sizes" << std::endl;
+  typedef typename boost::graph_traits<Graph>::vertices_size_type vertex_size_t;
+  vertex_size_t cur = 0;
+  vertex_size_t max = 0;
+  std::vector<vertex_size_t> queue_size_map(boost::num_vertices(g), 0);
+  boost::breadth_first_search(g, v,
+      boost::visitor(boost::make_bfs_visitor(std::make_pair(
+          detail::record_queue_append(cur, boost::on_discover_vertex()),
+          detail::record_queue_max_remove(cur, max)
+      ))));
+  return max;
 }
 
 #endif // BFS_INFO_H
