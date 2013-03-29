@@ -75,6 +75,12 @@ void report(const parity_game_t& pg, YAML::Emitter& out, const report_options op
           << YAML::Value << boost::num_vertices(pg)
           << YAML::Key << "Number of edges"
           << YAML::Value << boost::num_edges(pg)
+          << YAML::Key << "Number of even vertices"
+          << YAML::Value << num_even_vertices(pg)
+          << YAML::Key << "Number of odd vertices"
+          << YAML::Value << num_odd_vertices(pg)
+          << YAML::Key << "Number of priorities"
+          << YAML::Value << priorities(pg).size()
           << YAML::Key << "Degree"
              << YAML::Value
              << YAML::BeginMap
@@ -95,7 +101,7 @@ void report(const parity_game_t& pg, YAML::Emitter& out, const report_options op
              << YAML::Key << "min" << YAML::Value << min_out_degree(pg)
              << YAML::Key << "max" << YAML::Value << max_out_degree(pg)
              << YAML::Key << "avg" << YAML::Value << avg_out_degree(pg)
-             << YAML::EndMap;
+             << YAML::EndMap
         << YAML::EndMap;
   }
 

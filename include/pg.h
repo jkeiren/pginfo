@@ -23,8 +23,8 @@
  */
 enum player_t
 {
-	even = 0,///< even
-	odd  = 1 ///< odd
+  even = 0,///< even
+  odd  = 1 ///< odd
 };
 
 typedef size_t priority_t; ///< Type of vertex priorities.
@@ -36,20 +36,20 @@ struct pg_label_t
 {
   //size_t vertex_index;
   size_t node_id; ///< The identity of the vertex
-	priority_t prio; ///< The vertex priority
-	player_t player; ///< The owner of the vertex
-	/// @brief Comparison to make pg_label_t a valid mapping index.
-	bool operator<(const pg_label_t& other) const
-	{
-		return (prio < other.prio)
-			or (prio == other.prio and player < other.player);
-	}
-	/// @brief Equality comparison.
-	bool operator==(const pg_label_t& other) const
-	{
-		return (prio == other.prio)
-		   and (player == other.player);
-	}
+  priority_t prio; ///< The vertex priority
+  player_t player; ///< The owner of the vertex
+  /// @brief Comparison to make pg_label_t a valid mapping index.
+  bool operator<(const pg_label_t& other) const
+  {
+    return (prio < other.prio)
+      or (prio == other.prio and player < other.player);
+  }
+  /// @brief Equality comparison.
+  bool operator==(const pg_label_t& other) const
+  {
+    return (prio == other.prio)
+       and (player == other.player);
+  }
 };
 
 typedef boost::adjacency_list<boost::setS, boost::vecS, boost::bidirectionalS, pg_label_t > parity_game_t;
@@ -57,8 +57,8 @@ typedef boost::adjacency_list<boost::setS, boost::vecS, boost::undirectedS, pg_l
 
 struct is_even_vtx
 {
-  parity_game_t& m_pg;
-  is_even_vtx(parity_game_t& pg)
+  const parity_game_t& m_pg;
+  is_even_vtx(const parity_game_t& pg)
     : m_pg(pg)
   {}
 
@@ -69,7 +69,7 @@ struct is_even_vtx
 };
 
 inline
-size_t num_even_vertices(parity_game_t& pg)
+size_t num_even_vertices(const parity_game_t& pg)
 {
   boost::graph_traits< parity_game_t >::vertex_iterator i, end;
   boost::tie(i, end) = vertices(pg);
@@ -77,8 +77,21 @@ size_t num_even_vertices(parity_game_t& pg)
 }
 
 inline
-size_t num_odd_vertices(parity_game_t& pg)
+size_t num_odd_vertices(const parity_game_t& pg)
 {
   return boost::num_vertices(pg) - num_even_vertices(pg);
 }
+
+inline
+std::set<priority_t> priorities(const parity_game_t& pg)
+{
+  std::set<priority_t> result;
+  boost::graph_traits< parity_game_t >::vertex_iterator i, end;
+  for(boost::tie(i, end) = vertices(pg); i != end; ++i)
+  {
+    result.insert(pg[*i].prio);
+  }
+  return result;
+}
+
 #endif // PGBGL_H
