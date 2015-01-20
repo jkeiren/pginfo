@@ -22,8 +22,6 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/external/googletest/include
 )
 
-add_executable (unittest
-  ${TEST_SOURCES}
-)
+add_executable (unittest ${TEST_SOURCES})
 
-target_link_libraries(unittest ${YAMLCPP_LIBRARY} gtest cppcli cpplogging)
+target_link_libraries(unittest ${YAMLCPP_LIBRARY} gtest ${CPPCLI_LIBRARY} ${CPPLOGGING_LIBRARY})
